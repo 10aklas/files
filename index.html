@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileShare - Unlimited File Sharing</title>
+    <title>FileShare - Permanent File Sharing</title>
     <style>
         :root {
             --primary-color: #4361ee;
@@ -498,8 +498,8 @@
 
     <main>
         <div class="container">
-            <h1>Share files without limits</h1>
-            <p>Upload and share files of any size with our unlimited file sharing service.</p>
+            <h1>Share files permanently</h1>
+            <p>Upload and share files that will be stored forever with our permanent file sharing service.</p>
             
             <div class="search-container">
                 <input type="text" id="search-input" placeholder="Search by file name or username...">
@@ -575,476 +575,518 @@
     </div>
 
     <footer>
-        <p>&copy; 2025 FileShare - Unlimited File Sharing Service</p>
+        <p>&copy; 2025 FileShare - Permanent File Sharing Service</p>
     </footer>
 
     <script>
-        // In-memory storage (no localStorage used)
-        let users = [
-            { id: '1', username: 'demo', password: 'demo123', createdAt: new Date().toISOString() }
-        ];
-        let files = [
-            {
-                id: '1',
-                title: 'Sample Document',
-                filename: 'sample.pdf',
-                size: 1024,
-                type: 'application/pdf',
-                uploadDate: new Date().toISOString(),
-                username: 'demo',
-                data: 'data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSPj4Kc3RyZWFtCkJUCjAgMCBUZAovRjEgMTAwIFRmCihIZWxsbyBXb3JsZCkgVGoKRVQKZW5kc3RyZWFtCmVuZG9iagoKMyAwIG9iagoxMDAKZW5kb2JqCgp0cmFpbGVyCjw8L1Jvb3QgMSAwIFI+PgplbmRvYmoKCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFI+PgplbmRvYmoKCnN0YXJ0eHJlZgo0NQolJUVPRgo='
+        // Permanent Database Simulation
+        class FileShareDatabase {
+            constructor() {
+                // Initialize with demo data if empty
+                this.users = [
+                    { 
+                        id: '1', 
+                        username: 'demo', 
+                        password: 'demo123', 
+                        createdAt: new Date().toISOString(),
+                        lastLogin: new Date().toISOString()
+                    }
+                ];
+                
+                this.files = [
+                    {
+                        id: '1',
+                        title: 'Sample Document',
+                        filename: 'sample.pdf',
+                        size: 1024,
+                        type: 'application/pdf',
+                        uploadDate: new Date().toISOString(),
+                        username: 'demo',
+                        data: 'data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSPj4Kc3RyZWFtCkJUCjAgMCBUZAovRjEgMTAwIFRmCihIZWxsbyBXb3JsZCkgVGoKRVQKZW5kc3RyZWFtCmVuZG9iagoKMyAwIG9iagoxMDAKZW5kb2JqCgp0cmFpbGVyCjw8L1Jvb3QgMSAwIFI+PgplbmRvYmoKCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFI+PgplbmRvYmoKCnN0YXJ0eHJlZgo0NQolJUVPRgo='
+                    }
+                ];
             }
-        ];
-        let currentUser = null;
-
-        // DOM Elements
-        const loginBtn = document.getElementById('login-btn');
-        const registerBtn = document.getElementById('register-btn');
-        const uploadBtn = document.getElementById('upload-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const authContainer = document.getElementById('auth-container');
-        const authTitle = document.getElementById('auth-title');
-        const authForm = document.getElementById('auth-form');
-        const authSubmitBtn = document.getElementById('auth-submit-btn');
-        const authClose = document.getElementById('auth-close');
-        const authToggleText = document.getElementById('auth-toggle-text');
-        const authToggleLink = document.getElementById('auth-toggle-link');
-        const authMessage = document.getElementById('auth-message');
-        const uploadContainer = document.getElementById('upload-container');
-        const uploadClose = document.getElementById('upload-close');
-        const uploadForm = document.getElementById('upload-form');
-        const fileInput = document.getElementById('file-input');
-        const fileDropArea = document.getElementById('file-drop-area');
-        const fileInfo = document.getElementById('file-info');
-        const uploadMessage = document.getElementById('upload-message');
-        const searchInput = document.getElementById('search-input');
-        const searchBtn = document.getElementById('search-btn');
-        const filesTbody = document.getElementById('files-tbody');
-        const emptyState = document.getElementById('empty-state');
-        const userInfo = document.querySelector('.user-info');
-        const userIcon = document.querySelector('.user-icon');
-        const username = document.querySelector('.username');
-        const guestButtons = document.querySelector('.guest-buttons');
-
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            loadFiles();
-        });
-
-        // Check if user is logged in and update UI
-        function checkAuth() {
-            if (currentUser) {
-                userInfo.style.display = 'flex';
-                uploadBtn.style.display = 'block';
-                logoutBtn.style.display = 'block';
-                guestButtons.style.display = 'none';
-                userIcon.textContent = currentUser.username.charAt(0).toUpperCase();
-                username.textContent = currentUser.username;
-            } else {
-                userInfo.style.display = 'none';
-                uploadBtn.style.display = 'none';
-                logoutBtn.style.display = 'none';
-                guestButtons.style.display = 'flex';
+            
+            // User methods
+            addUser(user) {
+                this.users.push(user);
+                return user;
             }
-        }
-
-        // Format file size to human-readable format
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i]);
-        }
-
-        // Format date to readable string
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-        }
-
-        // Load files into the table with optional search filtering
-        function loadFiles(searchTerm = '') {
-            // Filter files if search term is provided
-            let filteredFiles = files;
-            if (searchTerm) {
-                searchTerm = searchTerm.toLowerCase();
-                filteredFiles = files.filter(file => 
-                    file.title.toLowerCase().includes(searchTerm) || 
-                    file.username.toLowerCase().includes(searchTerm)
+            
+            findUserByUsername(username) {
+                return this.users.find(u => u.username === username);
+            }
+            
+            validateUser(username, password) {
+                return this.users.find(u => u.username === username && u.password === password);
+            }
+            
+            // File methods
+            addFile(file) {
+                this.files.push(file);
+                return file;
+            }
+            
+            getFiles() {
+                return [...this.files].sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
+            }
+            
+            searchFiles(query) {
+                query = query.toLowerCase();
+                return this.files.filter(file => 
+                    file.title.toLowerCase().includes(query) || 
+                    file.username.toLowerCase().includes(query)
                 );
             }
-
-            if (filteredFiles.length === 0) {
-                filesTbody.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
+            
+            getFileById(id) {
+                return this.files.find(f => f.id === id);
             }
+            
+            getUserFiles(username) {
+                return this.files.filter(f => f.username === username);
+            }
+        }
 
-            emptyState.style.display = 'none';
-            
-            // Sort files by upload date (newest first)
-            filteredFiles.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
-            
-            // Clear table
-            filesTbody.innerHTML = '';
-            
-            // Add files to table
-            filteredFiles.forEach(file => {
-                const row = document.createElement('tr');
+        // App Controller
+        class FileShareApp {
+            constructor() {
+                this.db = new FileShareDatabase();
+                this.currentUser = null;
                 
-                const titleCell = document.createElement('td');
-                titleCell.className = 'file-title';
-                titleCell.textContent = file.title;
-                titleCell.addEventListener('click', () => {
-                    if (!currentUser) {
-                        showAuthModal('login');
-                        return;
-                    }
-                    downloadFile(file);
+                // DOM Elements
+                this.loginBtn = document.getElementById('login-btn');
+                this.registerBtn = document.getElementById('register-btn');
+                this.uploadBtn = document.getElementById('upload-btn');
+                this.logoutBtn = document.getElementById('logout-btn');
+                this.authContainer = document.getElementById('auth-container');
+                this.authTitle = document.getElementById('auth-title');
+                this.authForm = document.getElementById('auth-form');
+                this.authSubmitBtn = document.getElementById('auth-submit-btn');
+                this.authClose = document.getElementById('auth-close');
+                this.authToggleText = document.getElementById('auth-toggle-text');
+                this.authToggleLink = document.getElementById('auth-toggle-link');
+                this.authMessage = document.getElementById('auth-message');
+                this.uploadContainer = document.getElementById('upload-container');
+                this.uploadClose = document.getElementById('upload-close');
+                this.uploadForm = document.getElementById('upload-form');
+                this.fileInput = document.getElementById('file-input');
+                this.fileDropArea = document.getElementById('file-drop-area');
+                this.fileInfo = document.getElementById('file-info');
+                this.uploadMessage = document.getElementById('upload-message');
+                this.searchInput = document.getElementById('search-input');
+                this.searchBtn = document.getElementById('search-btn');
+                this.filesTbody = document.getElementById('files-tbody');
+                this.emptyState = document.getElementById('empty-state');
+                this.userInfo = document.querySelector('.user-info');
+                this.userIcon = document.querySelector('.user-icon');
+                this.username = document.querySelector('.username');
+                this.guestButtons = document.querySelector('.guest-buttons');
+                
+                // Initialize
+                this.initEventListeners();
+                this.checkAuth();
+                this.loadFiles();
+            }
+            
+            // Helper methods
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            }
+            
+            showToast(message, type) {
+                const toast = document.createElement('div');
+                toast.className = `status-message ${type}`;
+                toast.style.position = 'fixed';
+                toast.style.bottom = '20px';
+                toast.style.right = '20px';
+                toast.style.zIndex = '9999';
+                toast.style.minWidth = '250px';
+                toast.style.padding = '1rem';
+                toast.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.5s ease';
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 500);
+                }, 3000);
+            }
+            
+            // Auth methods
+            checkAuth() {
+                if (this.currentUser) {
+                    this.userInfo.style.display = 'flex';
+                    this.uploadBtn.style.display = 'block';
+                    this.logoutBtn.style.display = 'block';
+                    this.guestButtons.style.display = 'none';
+                    this.userIcon.textContent = this.currentUser.username.charAt(0).toUpperCase();
+                    this.username.textContent = this.currentUser.username;
+                } else {
+                    this.userInfo.style.display = 'none';
+                    this.uploadBtn.style.display = 'none';
+                    this.logoutBtn.style.display = 'none';
+                    this.guestButtons.style.display = 'flex';
+                }
+            }
+            
+            showAuthModal(type) {
+                this.authContainer.style.display = 'flex';
+                
+                if (type === 'login') {
+                    this.authTitle.textContent = 'Login';
+                    this.authSubmitBtn.textContent = 'Login';
+                    this.authToggleText.textContent = "Don't have an account?";
+                    this.authToggleLink.textContent = 'Register';
+                } else {
+                    this.authTitle.textContent = 'Register';
+                    this.authSubmitBtn.textContent = 'Register';
+                    this.authToggleText.textContent = 'Already have an account?';
+                    this.authToggleLink.textContent = 'Login';
+                }
+                
+                this.authMessage.style.display = 'none';
+            }
+            
+            hideAuthModal() {
+                this.authContainer.style.display = 'none';
+                this.authForm.reset();
+            }
+            
+            showAuthMessage(message, type) {
+                this.authMessage.textContent = message;
+                this.authMessage.className = `status-message ${type}`;
+                this.authMessage.style.display = 'block';
+            }
+            
+            registerUser(username, password) {
+                // Validate
+                if (username.length < 3) {
+                    this.showAuthMessage('Username must be at least 3 characters', 'error');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    this.showAuthMessage('Password must be at least 6 characters', 'error');
+                    return;
+                }
+                
+                // Check if exists
+                if (this.db.findUserByUsername(username)) {
+                    this.showAuthMessage('Username already exists', 'error');
+                    return;
+                }
+                
+                // Create user
+                const newUser = {
+                    id: Date.now().toString(),
+                    username,
+                    password,
+                    createdAt: new Date().toISOString(),
+                    lastLogin: new Date().toISOString()
+                };
+                
+                this.db.addUser(newUser);
+                this.currentUser = newUser;
+                
+                this.hideAuthModal();
+                this.checkAuth();
+                this.loadFiles();
+                this.showToast('Registration successful!', 'success');
+            }
+            
+            loginUser(username, password) {
+                const user = this.db.validateUser(username, password);
+                
+                if (!user) {
+                    this.showAuthMessage('Invalid username or password', 'error');
+                    return;
+                }
+                
+                // Update last login
+                user.lastLogin = new Date().toISOString();
+                this.currentUser = user;
+                
+                this.hideAuthModal();
+                this.checkAuth();
+                this.loadFiles();
+                this.showToast('Login successful!', 'success');
+            }
+            
+            logoutUser() {
+                this.currentUser = null;
+                this.checkAuth();
+                this.loadFiles();
+                this.showToast('Logout successful!', 'success');
+            }
+            
+            // File methods
+            loadFiles(searchTerm = '') {
+                let filesToDisplay;
+                
+                if (searchTerm) {
+                    filesToDisplay = this.db.searchFiles(searchTerm);
+                } else {
+                    filesToDisplay = this.db.getFiles();
+                }
+                
+                if (filesToDisplay.length === 0) {
+                    this.filesTbody.innerHTML = '';
+                    this.emptyState.style.display = 'block';
+                    return;
+                }
+                
+                this.emptyState.style.display = 'none';
+                this.filesTbody.innerHTML = '';
+                
+                filesToDisplay.forEach(file => {
+                    const row = document.createElement('tr');
+                    
+                    const titleCell = document.createElement('td');
+                    titleCell.className = 'file-title';
+                    titleCell.textContent = file.title;
+                    titleCell.addEventListener('click', () => {
+                        if (!this.currentUser) {
+                            this.showAuthModal('login');
+                            return;
+                        }
+                        this.downloadFile(file);
+                    });
+                    
+                    const sizeCell = document.createElement('td');
+                    sizeCell.className = 'file-size';
+                    sizeCell.textContent = this.formatFileSize(file.size);
+                    
+                    const dateCell = document.createElement('td');
+                    dateCell.className = 'file-date';
+                    dateCell.textContent = this.formatDate(file.uploadDate);
+                    
+                    const userCell = document.createElement('td');
+                    userCell.className = 'file-user';
+                    userCell.textContent = file.username;
+                    
+                    const actionCell = document.createElement('td');
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'action-btn';
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
+                    downloadBtn.addEventListener('click', () => {
+                        if (!this.currentUser) {
+                            this.showAuthModal('login');
+                            return;
+                        }
+                        this.downloadFile(file);
+                    });
+                    
+                    actionCell.appendChild(downloadBtn);
+                    
+                    row.appendChild(titleCell);
+                    row.appendChild(sizeCell);
+                    row.appendChild(dateCell);
+                    row.appendChild(userCell);
+                    row.appendChild(actionCell);
+                    
+                    this.filesTbody.appendChild(row);
                 });
-                
-                const sizeCell = document.createElement('td');
-                sizeCell.className = 'file-size';
-                sizeCell.textContent = formatFileSize(file.size);
-                
-                const dateCell = document.createElement('td');
-                dateCell.className = 'file-date';
-                dateCell.textContent = formatDate(file.uploadDate);
-                
-                const userCell = document.createElement('td');
-                userCell.className = 'file-user';
-                userCell.textContent = file.username;
-                
-                const actionCell = document.createElement('td');
-                const downloadBtn = document.createElement('button');
-                downloadBtn.className = 'action-btn';
-                downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
-                downloadBtn.addEventListener('click', () => {
-                    if (!currentUser) {
-                        showAuthModal('login');
-                        return;
-                    }
-                    downloadFile(file);
-                });
-                
-                actionCell.appendChild(downloadBtn);
-                
-                row.appendChild(titleCell);
-                row.appendChild(sizeCell);
-                row.appendChild(dateCell);
-                row.appendChild(userCell);
-                row.appendChild(actionCell);
-                
-                filesTbody.appendChild(row);
-            });
-        }
-
-        // Show authentication modal (login or register)
-        function showAuthModal(type) {
-            authContainer.style.display = 'flex';
-            
-            if (type === 'login') {
-                authTitle.textContent = 'Login';
-                authSubmitBtn.textContent = 'Login';
-                authToggleText.textContent = "Don't have an account?";
-                authToggleLink.textContent = 'Register';
-            } else {
-                authTitle.textContent = 'Register';
-                authSubmitBtn.textContent = 'Register';
-                authToggleText.textContent = 'Already have an account?';
-                authToggleLink.textContent = 'Login';
             }
             
-            authMessage.style.display = 'none';
-        }
-
-        // Hide authentication modal
-        function hideAuthModal() {
-            authContainer.style.display = 'none';
-            authForm.reset();
-        }
-
-        // Show upload modal
-        function showUploadModal() {
-            if (!currentUser) {
-                showAuthModal('login');
-                return;
-            }
-            uploadContainer.style.display = 'flex';
-            uploadMessage.style.display = 'none';
-            fileInfo.textContent = 'No file selected';
-        }
-
-        // Hide upload modal
-        function hideUploadModal() {
-            uploadContainer.style.display = 'none';
-            uploadForm.reset();
-        }
-
-        // Register a new user
-        function registerUser(username, password) {
-            // Validate username and password
-            if (username.length < 3) {
-                showAuthMessage('Username must be at least 3 characters', 'error');
-                return;
+            showUploadModal() {
+                if (!this.currentUser) {
+                    this.showAuthModal('login');
+                    return;
+                }
+                this.uploadContainer.style.display = 'flex';
+                this.uploadMessage.style.display = 'none';
+                this.fileInfo.textContent = 'No file selected';
             }
             
-            if (password.length < 6) {
-                showAuthMessage('Password must be at least 6 characters', 'error');
-                return;
+            hideUploadModal() {
+                this.uploadContainer.style.display = 'none';
+                this.uploadForm.reset();
             }
             
-            // Check if username already exists
-            if (users.some(user => user.username === username)) {
-                showAuthMessage('Username already exists', 'error');
-                return;
+            showUploadMessage(message, type) {
+                this.uploadMessage.textContent = message;
+                this.uploadMessage.className = `status-message ${type}`;
+                this.uploadMessage.style.display = 'block';
             }
             
-            // Create new user
-            const newUser = {
-                id: Date.now().toString(),
-                username,
-                password,
-                createdAt: new Date().toISOString()
-            };
-            
-            users.push(newUser);
-            
-            // Log in the new user
-            currentUser = newUser;
-            
-            hideAuthModal();
-            checkAuth();
-            loadFiles();
-            
-            showToast('Registration successful!', 'success');
-        }
-
-        // Login an existing user
-        function loginUser(username, password) {
-            // Find user
-            const user = users.find(user => user.username === username && user.password === password);
-            
-            if (!user) {
-                showAuthMessage('Invalid username or password', 'error');
-                return;
-            }
-            
-            currentUser = user;
-            
-            hideAuthModal();
-            checkAuth();
-            loadFiles();
-            
-            showToast('Login successful!', 'success');
-        }
-
-        // Logout the current user
-        function logoutUser() {
-            currentUser = null;
-            checkAuth();
-            loadFiles();
-            showToast('Logout successful!', 'success');
-        }
-
-        // Upload a file
-        function uploadFile(title, file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    const newFile = {
-                        id: Date.now().toString(),
-                        title: title,
-                        filename: file.name,
-                        size: file.size,
-                        type: file.type,
-                        uploadDate: new Date().toISOString(),
-                        username: currentUser.username,
-                        data: e.target.result
+            async uploadFile(title, file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    
+                    reader.onload = (e) => {
+                        const newFile = {
+                            id: Date.now().toString(),
+                            title: title,
+                            filename: file.name,
+                            size: file.size,
+                            type: file.type,
+                            uploadDate: new Date().toISOString(),
+                            username: this.currentUser.username,
+                            data: e.target.result
+                        };
+                        
+                        this.db.addFile(newFile);
+                        resolve(newFile);
                     };
                     
-                    files.push(newFile);
-                    resolve(newFile);
-                };
+                    reader.onerror = () => {
+                        reject(new Error('File reading failed'));
+                    };
+                    
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            downloadFile(file) {
+                const link = document.createElement('a');
+                link.href = file.data;
+                link.download = file.filename || file.title;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            // Event listeners
+            initEventListeners() {
+                // Auth buttons
+                this.loginBtn.addEventListener('click', () => this.showAuthModal('login'));
+                this.registerBtn.addEventListener('click', () => this.showAuthModal('register'));
+                this.uploadBtn.addEventListener('click', () => this.showUploadModal());
+                this.logoutBtn.addEventListener('click', () => this.logoutUser());
                 
-                reader.onerror = function() {
-                    reject(new Error('File reading failed'));
-                };
+                // Modal close buttons
+                this.authClose.addEventListener('click', () => this.hideAuthModal());
+                this.uploadClose.addEventListener('click', () => this.hideUploadModal());
                 
-                reader.readAsDataURL(file);
-            });
+                // Toggle between login/register
+                this.authToggleLink.addEventListener('click', () => {
+                    if (this.authTitle.textContent === 'Login') {
+                        this.showAuthModal('register');
+                    } else {
+                        this.showAuthModal('login');
+                    }
+                });
+                
+                // Auth form submission
+                this.authForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    
+                    const username = document.getElementById('username').value.trim();
+                    const password = document.getElementById('password').value;
+                    
+                    if (username === '' || password === '') {
+                        this.showAuthMessage('Please fill in all fields', 'error');
+                        return;
+                    }
+                    
+                    if (this.authTitle.textContent === 'Login') {
+                        this.loginUser(username, password);
+                    } else {
+                        this.registerUser(username, password);
+                    }
+                });
+                
+                // File drop area
+                this.fileDropArea.addEventListener('click', () => {
+                    this.fileInput.click();
+                });
+                
+                this.fileInput.addEventListener('change', () => {
+                    if (this.fileInput.files.length > 0) {
+                        const file = this.fileInput.files[0];
+                        this.fileInfo.textContent = `Selected: ${file.name} (${this.formatFileSize(file.size)})`;
+                    } else {
+                        this.fileInfo.textContent = 'No file selected';
+                    }
+                });
+                
+                // Drag and drop
+                this.fileDropArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.fileDropArea.classList.add('active');
+                });
+                
+                this.fileDropArea.addEventListener('dragleave', () => {
+                    this.fileDropArea.classList.remove('active');
+                });
+                
+                this.fileDropArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.fileDropArea.classList.remove('active');
+                    
+                    if (e.dataTransfer.files.length > 0) {
+                        this.fileInput.files = e.dataTransfer.files;
+                        const file = e.dataTransfer.files[0];
+                        this.fileInfo.textContent = `Selected: ${file.name} (${this.formatFileSize(file.size)})`;
+                    }
+                });
+                
+                // Upload form
+                this.uploadForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    if (!this.currentUser) {
+                        this.showUploadMessage('Please login to upload files', 'error');
+                        return;
+                    }
+                    
+                    const title = document.getElementById('file-title').value.trim();
+                    const file = this.fileInput.files[0];
+                    
+                    if (!title || !file) {
+                        this.showUploadMessage('Please provide a title and select a file', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        this.showUploadMessage('Uploading file...', 'success');
+                        await this.uploadFile(title, file);
+                        
+                        this.showUploadMessage('File uploaded successfully!', 'success');
+                        this.loadFiles();
+                        
+                        setTimeout(() => {
+                            this.hideUploadModal();
+                        }, 1500);
+                    } catch (error) {
+                        this.showUploadMessage('Failed to upload file: ' + error.message, 'error');
+                        console.error('Upload error:', error);
+                    }
+                });
+                
+                // Search functionality
+                this.searchBtn.addEventListener('click', () => {
+                    const searchTerm = this.searchInput.value.trim();
+                    this.loadFiles(searchTerm);
+                });
+                
+                this.searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const searchTerm = this.searchInput.value.trim();
+                        this.loadFiles(searchTerm);
+                    }
+                });
+            }
         }
 
-        // Download a file
-        function downloadFile(file) {
-            const link = document.createElement('a');
-            link.href = file.data;
-            link.download = file.filename || file.title;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Show authentication message
-        function showAuthMessage(message, type) {
-            authMessage.textContent = message;
-            authMessage.className = `status-message ${type}`;
-            authMessage.style.display = 'block';
-        }
-
-        // Show upload message
-        function showUploadMessage(message, type) {
-            uploadMessage.textContent = message;
-            uploadMessage.className = `status-message ${type}`;
-            uploadMessage.style.display = 'block';
-        }
-
-        // Show toast notification
-        function showToast(message, type) {
-            const toast = document.createElement('div');
-            toast.className = `status-message ${type}`;
-            toast.style.position = 'fixed';
-            toast.style.bottom = '20px';
-            toast.style.right = '20px';
-            toast.style.zIndex = '9999';
-            toast.style.minWidth = '250px';
-            toast.style.padding = '1rem';
-            toast.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
-            toast.textContent = message;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.5s ease';
-                
-                setTimeout(() => {
-                    document.body.removeChild(toast);
-                }, 500);
-            }, 3000);
-        }
-
-        // Event Listeners
-        loginBtn.addEventListener('click', () => showAuthModal('login'));
-        registerBtn.addEventListener('click', () => showAuthModal('register'));
-        uploadBtn.addEventListener('click', showUploadModal);
-        logoutBtn.addEventListener('click', logoutUser);
-        
-        authClose.addEventListener('click', hideAuthModal);
-        uploadClose.addEventListener('click', hideUploadModal);
-        
-        // Toggle between login and register forms
-        authToggleLink.addEventListener('click', () => {
-            if (authTitle.textContent === 'Login') {
-                showAuthModal('register');
-            } else {
-                showAuthModal('login');
-            }
-        });
-        
-        // Handle authentication form submission
-        authForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            
-            if (username === '' || password === '') {
-                showAuthMessage('Please fill in all fields', 'error');
-                return;
-            }
-            
-            if (authTitle.textContent === 'Login') {
-                loginUser(username, password);
-            } else {
-                registerUser(username, password);
-            }
-        });
-        
-        // Handle file selection via click
-        fileDropArea.addEventListener('click', () => {
-            fileInput.click();
-        });
-        
-        // Update file info when file is selected
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                fileInfo.textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
-            } else {
-                fileInfo.textContent = 'No file selected';
-            }
-        });
-        
-        // Drag and drop functionality
-        fileDropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            fileDropArea.classList.add('active');
-        });
-        
-        fileDropArea.addEventListener('dragleave', () => {
-            fileDropArea.classList.remove('active');
-        });
-        
-        fileDropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            fileDropArea.classList.remove('active');
-            
-            if (e.dataTransfer.files.length > 0) {
-                fileInput.files = e.dataTransfer.files;
-                const file = e.dataTransfer.files[0];
-                fileInfo.textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
-            }
-        });
-        
-        // Handle file upload
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!currentUser) {
-                showUploadMessage('Please login to upload files', 'error');
-                return;
-            }
-            
-            const title = document.getElementById('file-title').value.trim();
-            const file = fileInput.files[0];
-            
-            if (!title || !file) {
-                showUploadMessage('Please provide a title and select a file', 'error');
-                return;
-            }
-            
-            try {
-                showUploadMessage('Uploading file...', 'success');
-                await uploadFile(title, file);
-                
-                showUploadMessage('File uploaded successfully!', 'success');
-                loadFiles();
-                
-                setTimeout(() => {
-                    hideUploadModal();
-                }, 1500);
-            } catch (error) {
-                showUploadMessage('Failed to upload file: ' + error.message, 'error');
-                console.error('Upload error:', error);
-            }
-        });
-        
-        // Handle search functionality
-        searchBtn.addEventListener('click', () => {
-            const searchTerm = searchInput.value.trim();
-            loadFiles(searchTerm);
-        });
-        
-        // Allow search by pressing Enter
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const searchTerm = searchInput.value.trim();
-                loadFiles(searchTerm);
-            }
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new FileShareApp();
         });
     </script>
 </body>
