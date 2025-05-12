@@ -519,6 +519,7 @@
             }
             
             .file-actions {
+                flex-direction: column;
                 gap: 5px;
             }
             
@@ -554,7 +555,7 @@
                 </svg>
                 <h3>Drop files here</h3>
                 <p>Files are shared via URL - anyone with the link can access</p>
-                <input type="file" id="fileInput" style="display: none;" multiple>
+                <input type="file" id="fileInput" style="display: none;">
             </div>
             
             <div class="file-preview" id="filePreview">
@@ -691,33 +692,65 @@
     <script>
         // Initialize IndexedDB
         let db;
-        const request = window.indexedDB.open('ShadowShareDB', 2);
+        let isDbInitialized = false;
         
-        request.onerror = function(event) {
-            showToast('Error opening database', true);
-        };
+        function initializeDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('ShadowShareDB', 2);
+                
+                request.onerror = function(event) {
+                    console.error('Database error:', event.target.error);
+                    reject('Error opening database');
+                };
+                
+                request.onupgradeneeded = function(event) {
+                    const db = event.target.result;
+                    
+                    // Create files store if it doesn't exist
+                    if (!db.objectStoreNames.contains('files')) {
+                        const filesStore = db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+                        filesStore.createIndex('title', 'title', { unique: false });
+                        filesStore.createIndex('name', 'name', { unique: false });
+                        filesStore.createIndex('date', 'date', { unique: false });
+                    }
+                    
+                    // Create sharedFiles store if it doesn't exist
+                    if (!db.objectStoreNames.contains('sharedFiles')) {
+                        db.createObjectStore('sharedFiles', { keyPath: 'id' });
+                    }
+                };
+                
+                request.onsuccess = function(event) {
+                    db = event.target.result;
+                    isDbInitialized = true;
+                    
+                    // Add version change handler
+                    db.onversionchange = function() {
+                        db.close();
+                        console.log('Database is outdated, please reload the page.');
+                    };
+                    
+                    resolve(db);
+                };
+                
+                request.onblocked = function() {
+                    console.warn('Database upgrade blocked - please close other tabs using this database');
+                };
+            });
+        }
         
-        request.onupgradeneeded = function(event) {
-            db = event.target.result;
-            
-            // Create an object store for files
-            const objectStore = db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
-            
-            // Create indexes for searching
-            objectStore.createIndex('title', 'title', { unique: false });
-            objectStore.createIndex('name', 'name', { unique: false });
-            objectStore.createIndex('date', 'date', { unique: false });
-            
-            // Create object store for shared files (from URLs)
-            db.createObjectStore('sharedFiles', { keyPath: 'id' });
-        };
-        
-        request.onsuccess = function(event) {
-            db = event.target.result;
-            loadFiles();
-            checkForSharedFile();
-        };
-        
+        // Initialize database when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await initializeDatabase();
+                loadFiles();
+                checkForSharedFile();
+            } catch (error) {
+                console.error('Database initialization failed:', error);
+                showToast('Failed to initialize database. Please refresh the page.', true);
+            }
+        });
+
         // DOM Elements
         const dropArea = document.getElementById('dropArea');
         const fileInput = document.getElementById('fileInput');
@@ -860,7 +893,7 @@
         }
         
         function uploadFile() {
-            if (!currentFile || !fileTitle.value.trim() || uploadInProgress) return;
+            if (!currentFile || !fileTitle.value.trim() || uploadInProgress || !isDbInitialized) return;
             
             uploadInProgress = true;
             uploadBtn.disabled = true;
@@ -897,19 +930,16 @@
                     progressStatus.textContent = 'Almost there...';
                 } else if (progress < 100) {
                     progressStatus.textContent = 'Finalizing...';
-                }
-                
-                if (Math.random() < 0.1 && progress < 90) {
-                    setTimeout(updateProgress, 300 + Math.random() * 700);
-                } else if (progress < 100) {
-                    const delay = Math.random() * 100 + 50;
-                    setTimeout(updateProgress, delay);
                 } else {
                     progressStatus.textContent = 'Processing file...';
                     setTimeout(() => {
                         saveFile();
                     }, 500);
+                    return; // Stop the progress updates
                 }
+                
+                // Continue updating progress
+                setTimeout(updateProgress, 50 + Math.random() * 100);
             };
             
             setTimeout(updateProgress, 300);
@@ -918,11 +948,21 @@
         function saveFile() {
             const reader = new FileReader();
             
+            reader.onerror = function() {
+                showToast('Error reading file', true);
+                resetUploadForm();
+            };
+            
             reader.onload = function(e) {
                 const arrayBuffer = e.target.result;
                 const blob = new Blob([arrayBuffer], { type: currentFile.type });
                 
                 const fileReader = new FileReader();
+                fileReader.onerror = function() {
+                    showToast('Error processing file', true);
+                    resetUploadForm();
+                };
+                
                 fileReader.onload = function(e) {
                     const fileNameParts = currentFile.name.split('.');
                     const fileExtension = fileNameParts.length > 1 ? fileNameParts.pop() : '';
@@ -950,7 +990,7 @@
                     };
                     
                     request.onerror = function() {
-                        showToast('Error uploading file', true);
+                        showToast('Error saving file to database', true);
                         resetUploadForm();
                     };
                 };
@@ -974,6 +1014,8 @@
         }
         
         function loadFiles(searchTerm = '') {
+            if (!isDbInitialized) return;
+            
             const transaction = db.transaction(['files'], 'readonly');
             const objectStore = transaction.objectStore('files');
             const request = objectStore.getAll();
@@ -1074,6 +1116,10 @@
                     filesList.appendChild(row);
                 });
             };
+            
+            request.onerror = function() {
+                showToast('Error loading files', true);
+            };
         }
         
         function downloadFile(file) {
@@ -1099,6 +1145,10 @@
                 showToast('File deleted successfully!');
                 loadFiles();
             };
+            
+            request.onerror = function() {
+                showToast('Error deleting file', true);
+            };
         }
         
         function generateShareLink(fileId) {
@@ -1112,13 +1162,19 @@
             shareableLink.value = link;
             shareSection.style.display = 'block';
             
-            copyLinkBtn.addEventListener('click', () => {
+            // Reset previous event listeners
+            const newCopyBtn = copyLinkBtn.cloneNode(true);
+            copyLinkBtn.parentNode.replaceChild(newCopyBtn, copyLinkBtn);
+            const newShareBtn = shareBtn.cloneNode(true);
+            shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
+            
+            newCopyBtn.addEventListener('click', () => {
                 shareableLink.select();
                 document.execCommand('copy');
                 showToast('Link copied to clipboard!');
             });
             
-            shareBtn.addEventListener('click', () => {
+            newShareBtn.addEventListener('click', () => {
                 if (navigator.share) {
                     navigator.share({
                         title: 'Check out this file',
@@ -1132,6 +1188,8 @@
         }
         
         function checkForSharedFile() {
+            if (!isDbInitialized) return;
+            
             const urlParams = new URLSearchParams(window.location.search);
             const fileId = urlParams.get('file');
             
@@ -1148,6 +1206,10 @@
                         showToast('File not found', true);
                     }
                 };
+                
+                request.onerror = function() {
+                    showToast('Error accessing file', true);
+                };
             }
         }
         
@@ -1157,7 +1219,11 @@
             sharedFileTitle.textContent = file.title || file.name;
             sharedFileIcon.innerHTML = getFileIcon(file.type);
             
-            downloadSharedFile.onclick = function() {
+            // Reset previous event listener
+            const newDownloadBtn = downloadSharedFile.cloneNode(true);
+            downloadSharedFile.parentNode.replaceChild(newDownloadBtn, downloadSharedFile);
+            
+            newDownloadBtn.onclick = function() {
                 downloadFile(file);
                 sharedFileModal.style.display = 'none';
             };
