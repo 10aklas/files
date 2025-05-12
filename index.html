@@ -410,6 +410,51 @@
         .toast.error svg {
             color: var(--danger);
         }
+
+        /* New styles for file preview */
+        .file-preview {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .file-preview.active {
+            display: block;
+        }
+
+        .file-preview-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-preview-icon {
+            margin-right: 15px;
+            color: var(--primary);
+        }
+
+        .file-preview-details {
+            flex: 1;
+        }
+
+        .file-preview-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .file-preview-size {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .remove-file {
+            color: var(--danger);
+            cursor: pointer;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -442,6 +487,23 @@
                 <h3>Drag & Drop Files Here</h3>
                 <p>Or click to browse files</p>
                 <input type="file" id="fileInput" style="display: none;" multiple>
+            </div>
+            
+            <!-- File preview container -->
+            <div class="file-preview" id="filePreview">
+                <div class="file-preview-info">
+                    <div class="file-preview-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <div class="file-preview-details">
+                        <div class="file-preview-name" id="previewFileName"></div>
+                        <div class="file-preview-size" id="previewFileSize"></div>
+                    </div>
+                    <div class="remove-file" id="removeFile">Remove</div>
+                </div>
             </div>
             
             <div class="input-group">
@@ -566,6 +628,10 @@
         const cancelDelete = document.getElementById('cancelDelete');
         const confirmDelete = document.getElementById('confirmDelete');
         const toast = document.getElementById('toast');
+        const filePreview = document.getElementById('filePreview');
+        const previewFileName = document.getElementById('previewFileName');
+        const previewFileSize = document.getElementById('previewFileSize');
+        const removeFile = document.getElementById('removeFile');
         
         let currentFile = null;
         let fileToDelete = null;
@@ -620,11 +686,27 @@
                 deleteModal.style.display = 'none';
             }
         });
+
+        removeFile.addEventListener('click', () => {
+            resetUploadForm();
+        });
         
         // Functions
         function handleFileSelect() {
             if (fileInput.files.length > 0) {
                 currentFile = fileInput.files[0];
+                
+                // Show file preview
+                previewFileName.textContent = currentFile.name;
+                previewFileSize.textContent = formatFileSize(currentFile.size);
+                filePreview.classList.add('active');
+                
+                // Set default title to filename without extension
+                const fileNameParts = currentFile.name.split('.');
+                fileNameParts.pop(); // Remove extension
+                const defaultTitle = fileNameParts.join('.');
+                fileTitle.value = defaultTitle;
+                
                 uploadBtn.disabled = !fileTitle.value.trim() || uploadInProgress;
             }
         }
@@ -757,6 +839,7 @@
             progressContainer.style.display = 'none';
             progressBarFill.style.width = '0%';
             uploadInProgress = false;
+            filePreview.classList.remove('active');
         }
         
         function loadFiles(searchTerm = '') {
