@@ -684,31 +684,46 @@
         
         function saveFile() {
             const reader = new FileReader();
+            
+            // Use readAsArrayBuffer for binary files
             reader.onload = function(e) {
-                const fileData = {
-                    title: fileTitle.value.trim(),
-                    name: currentFile.name,
-                    size: currentFile.size,
-                    type: currentFile.type,
-                    data: e.target.result,
-                    date: new Date().toISOString()
+                const arrayBuffer = e.target.result;
+                const blob = new Blob([arrayBuffer], { type: currentFile.type });
+                
+                const fileReader = new FileReader();
+                fileReader.onload = function(e) {
+                    const fileData = {
+                        title: fileTitle.value.trim(),
+                        name: currentFile.name,
+                        size: currentFile.size,
+                        type: currentFile.type,
+                        data: e.target.result,
+                        date: new Date().toISOString()
+                    };
+                    
+                    const transaction = db.transaction(['files'], 'readwrite');
+                    const objectStore = transaction.objectStore('files');
+                    const request = objectStore.add(fileData);
+                    
+                    request.onsuccess = function() {
+                        showToast('File uploaded successfully!');
+                        resetUploadForm();
+                        loadFiles();
+                    };
+                    
+                    request.onerror = function() {
+                        console.log('Error', request.error);
+                        showToast('Error uploading file', true);
+                        resetUploadForm();
+                    };
                 };
                 
-                const transaction = db.transaction(['files'], 'readwrite');
-                const objectStore = transaction.objectStore('files');
-                const request = objectStore.add(fileData);
-                
-                request.onsuccess = function() {
-                    showToast('File uploaded successfully!');
+                fileReader.onerror = function() {
+                    showToast('Error reading file', true);
                     resetUploadForm();
-                    loadFiles();
                 };
                 
-                request.onerror = function() {
-                    console.log('Error', request.error);
-                    showToast('Error uploading file', true);
-                    resetUploadForm();
-                };
+                fileReader.readAsDataURL(blob);
             };
             
             reader.onerror = function() {
@@ -716,7 +731,7 @@
                 resetUploadForm();
             };
             
-            reader.readAsDataURL(currentFile);
+            reader.readAsArrayBuffer(currentFile);
         }
         
         function resetUploadForm() {
