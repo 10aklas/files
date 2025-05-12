@@ -621,33 +621,9 @@
     <script>
         // Discord Webhook URL - replace with your actual webhook URL
         const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1371536318424678410/OETxs2y-VaA60lX0KrzZmpubIGZSyznMXNCVi6CjJriUCwwf3roLcqXNb2j6gBfHeuoh';
-        // Chunk size (1MB chunks)
-        const CHUNK_SIZE = 1 * 1024 * 1024;
         
-        // Initialize IndexedDB
-        let db;
-        const request = window.indexedDB.open('ShadowShareDB', 1);
-        
-        request.onerror = function(event) {
-            showToast('Error opening database', true);
-        };
-        
-        request.onupgradeneeded = function(event) {
-            db = event.target.result;
-            
-            // Create an object store for files
-            const objectStore = db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
-            
-            // Create indexes for searching
-            objectStore.createIndex('title', 'title', { unique: false });
-            objectStore.createIndex('name', 'name', { unique: false });
-            objectStore.createIndex('date', 'date', { unique: false });
-        };
-        
-        request.onsuccess = function(event) {
-            db = event.target.result;
-            loadFiles();
-        };
+        // Array to store file metadata (temporary for current session)
+        let sharedFiles = [];
         
         // DOM Elements
         const dropArea = document.getElementById('dropArea');
@@ -759,7 +735,7 @@
             // Show progress bar
             progressContainer.style.display = 'block';
             progressBarFill.style.width = '0%';
-            progressStatus.textContent = 'Preparing file...';
+            progressStatus.textContent = 'Uploading file...';
             progressPercentage.textContent = '0%';
             
             try {
@@ -776,118 +752,32 @@
                     extension: fileExtension,
                     size: currentFile.size,
                     type: currentFile.type,
-                    chunks: Math.ceil(currentFile.size / CHUNK_SIZE),
                     date: new Date().toISOString()
                 };
                 
-                // Read file as ArrayBuffer
-                const arrayBuffer = await readFileAsArrayBuffer(currentFile);
+                // Upload file to Discord
+                const formData = new FormData();
+                formData.append('file', currentFile, currentFile.name);
                 
-                // Split file into chunks
-                const chunks = splitFileIntoChunks(arrayBuffer, CHUNK_SIZE);
-                
-                // Upload chunks to Discord
-                progressStatus.textContent = 'Uploading chunks...';
-                
-                let uploadedChunks = 0;
-                const chunkUrls = [];
-                
-                for (let i = 0; i < chunks.length; i++) {
-                    const chunk = chunks[i];
-                    const chunkName = `${fileId}_${i}.chunk`;
-                    
-                    // Create a blob from the chunk
-                    const blob = new Blob([chunk], { type: 'application/octet-stream' });
-                    
-                    // Upload chunk to Discord
-                    const chunkUrl = await uploadChunkToDiscord(blob, chunkName, fileMetadata);
-                    chunkUrls.push(chunkUrl);
-                    
-                    // Update progress
-                    uploadedChunks++;
-                    const progress = Math.floor((uploadedChunks / chunks.length) * 100);
-                    progressBarFill.style.width = `${progress}%`;
-                    progressPercentage.textContent = `${progress}%`;
-                    progressStatus.textContent = `Uploading chunk ${uploadedChunks} of ${chunks.length}...`;
-                }
-                
-                // Store metadata in IndexedDB with chunk URLs
-                fileMetadata.chunkUrls = chunkUrls;
-                
-                const transaction = db.transaction(['files'], 'readwrite');
-                const objectStore = transaction.objectStore('files');
-                const request = objectStore.add(fileMetadata);
-                
-                request.onsuccess = function() {
-                    showToast('File shared successfully!');
-                    resetUploadForm();
-                    loadFiles();
+                // Add metadata as a comment
+                const comment = {
+                    content: `New file shared: ${fileMetadata.title || fileMetadata.name}`,
+                    embeds: [{
+                        title: "File Metadata",
+                        fields: [
+                            { name: "File ID", value: fileMetadata.id, inline: true },
+                            { name: "Display Name", value: fileMetadata.title || "None", inline: true },
+                            { name: "Original Name", value: fileMetadata.name, inline: true },
+                            { name: "Size", value: formatFileSize(fileMetadata.size), inline: true },
+                            { name: "Type", value: fileMetadata.type || "Unknown", inline: true },
+                            { name: "Extension", value: fileMetadata.extension || "None", inline: true }
+                        ],
+                        timestamp: fileMetadata.date
+                    }]
                 };
                 
-                request.onerror = function() {
-                    console.log('Error', request.error);
-                    showToast('Error sharing file', true);
-                    resetUploadForm();
-                };
+                formData.append('payload_json', JSON.stringify(comment));
                 
-            } catch (error) {
-                console.error('Upload error:', error);
-                showToast('Error uploading file: ' + error.message, true);
-                resetUploadForm();
-            } finally {
-                uploadInProgress = false;
-            }
-        }
-        
-        // Helper function to read file as ArrayBuffer
-        function readFileAsArrayBuffer(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => reject(new Error('Error reading file'));
-                reader.readAsArrayBuffer(file);
-            });
-        }
-        
-        // Helper function to split file into chunks
-        function splitFileIntoChunks(arrayBuffer, chunkSize) {
-            const chunks = [];
-            let offset = 0;
-            
-            while (offset < arrayBuffer.byteLength) {
-                const end = Math.min(offset + chunkSize, arrayBuffer.byteLength);
-                const chunk = arrayBuffer.slice(offset, end);
-                chunks.push(chunk);
-                offset = end;
-            }
-            
-            return chunks;
-        }
-        
-        // Function to upload a chunk to Discord
-        async function uploadChunkToDiscord(blob, filename, metadata) {
-            const formData = new FormData();
-            formData.append('file', blob, filename);
-            
-            // Add metadata as a comment
-            const comment = {
-                content: `File chunk for ${metadata.name} (ID: ${metadata.id})`,
-                embeds: [{
-                    title: "File Metadata",
-                    fields: [
-                        { name: "File ID", value: metadata.id, inline: true },
-                        { name: "Original Name", value: metadata.name, inline: true },
-                        { name: "Chunk", value: filename, inline: true },
-                        { name: "Total Size", value: formatFileSize(metadata.size), inline: true },
-                        { name: "Total Chunks", value: metadata.chunks.toString(), inline: true }
-                    ],
-                    timestamp: new Date().toISOString()
-                }]
-            };
-            
-            formData.append('payload_json', JSON.stringify(comment));
-            
-            try {
                 const response = await fetch(DISCORD_WEBHOOK_URL, {
                     method: 'POST',
                     body: formData
@@ -898,76 +788,23 @@
                 }
                 
                 const data = await response.json();
-                return data.attachments[0].url; // Return the URL of the uploaded chunk
-            } catch (error) {
-                console.error('Error uploading chunk to Discord:', error);
-                throw error;
-            }
-        }
-        
-        // Modified downloadFile function to reassemble chunks
-        async function downloadFile(file) {
-            try {
-                showToast('Preparing download...');
                 
-                // Show progress bar
-                progressContainer.style.display = 'block';
-                progressBarFill.style.width = '0%';
-                progressStatus.textContent = 'Downloading chunks...';
-                progressPercentage.textContent = '0%';
+                // Store the file URL in our metadata
+                fileMetadata.url = data.attachments[0].url;
                 
-                // Download all chunks
-                const chunks = [];
+                // Add to shared files array
+                sharedFiles.push(fileMetadata);
                 
-                for (let i = 0; i < file.chunkUrls.length; i++) {
-                    progressStatus.textContent = `Downloading chunk ${i+1} of ${file.chunkUrls.length}...`;
-                    const progress = Math.floor(((i + 1) / file.chunkUrls.length) * 100);
-                    progressBarFill.style.width = `${progress}%`;
-                    progressPercentage.textContent = `${progress}%`;
-                    
-                    const chunkUrl = file.chunkUrls[i];
-                    const response = await fetch(chunkUrl);
-                    
-                    if (!response.ok) {
-                        throw new Error(`Failed to download chunk ${i}`);
-                    }
-                    
-                    const chunkData = await response.arrayBuffer();
-                    chunks.push(chunkData);
-                }
-                
-                // Combine chunks
-                progressStatus.textContent = 'Assembling file...';
-                
-                const totalSize = chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
-                const combinedBuffer = new Uint8Array(totalSize);
-                
-                let offset = 0;
-                for (const chunk of chunks) {
-                    combinedBuffer.set(new Uint8Array(chunk), offset);
-                    offset += chunk.byteLength;
-                }
-                
-                // Create blob and download
-                const blob = new Blob([combinedBuffer], { type: file.type });
-                const blobUrl = URL.createObjectURL(blob);
-                
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = file.name;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Clean up
-                URL.revokeObjectURL(blobUrl);
-                progressContainer.style.display = 'none';
-                showToast('Download complete!');
+                showToast('File shared successfully!');
+                resetUploadForm();
+                loadFiles();
                 
             } catch (error) {
-                console.error('Download error:', error);
-                showToast('Error downloading file: ' + error.message, true);
-                progressContainer.style.display = 'none';
+                console.error('Upload error:', error);
+                showToast('Error uploading file: ' + error.message, true);
+                resetUploadForm();
+            } finally {
+                uploadInProgress = false;
             }
         }
         
@@ -983,138 +820,130 @@
         }
         
         function loadFiles(searchTerm = '') {
-            const transaction = db.transaction(['files'], 'readonly');
-            const objectStore = transaction.objectStore('files');
-            const request = objectStore.getAll();
+            filesList.innerHTML = '';
             
-            request.onsuccess = function() {
-                const files = request.result;
-                filesList.innerHTML = '';
+            if (sharedFiles.length === 0) {
+                emptyState.style.display = 'block';
+                filesList.style.display = 'none';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            filesList.style.display = 'table-row-group';
+            
+            const filteredFiles = searchTerm 
+                ? sharedFiles.filter(file => 
+                    file.title.toLowerCase().includes(searchTerm) || 
+                    file.name.toLowerCase().includes(searchTerm))
+                : sharedFiles;
+            
+            filteredFiles.forEach(file => {
+                const row = document.createElement('tr');
                 
-                if (files.length === 0) {
-                    emptyState.style.display = 'block';
-                    filesList.style.display = 'none';
-                    return;
-                }
+                // File name cell
+                const nameCell = document.createElement('td');
+                nameCell.className = 'file-icon';
                 
-                emptyState.style.display = 'none';
-                filesList.style.display = 'table-row-group';
+                // Choose icon based on file type
+                let iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>`;
                 
-                const filteredFiles = searchTerm 
-                    ? files.filter(file => 
-                        file.title.toLowerCase().includes(searchTerm) || 
-                        file.name.toLowerCase().includes(searchTerm))
-                    : files;
-                
-                filteredFiles.forEach(file => {
-                    const row = document.createElement('tr');
-                    
-                    // File name cell
-                    const nameCell = document.createElement('td');
-                    nameCell.className = 'file-icon';
-                    
-                    // Choose icon based on file type
-                    let iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                if (file.type.startsWith('image/')) {
+                    iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>`;
+                } else if (file.type.startsWith('video/')) {
+                    iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <line x1="2" y1="7" x2="7" y2="7"></line>
+                        <line x1="2" y1="17" x2="7" y2="17"></line>
+                        <line x1="17" y1="17" x2="22" y2="17"></line>
+                        <line x1="17" y1="7" x2="22" y2="7"></line>
+                    </svg>`;
+                } else if (file.type.startsWith('audio/')) {
+                    iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>`;
+                } else if (file.type === 'application/pdf') {
+                    iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
+                        <path d="M9 13h6"></path>
+                        <path d="M9 17h6"></path>
+                        <path d="M9 9h1"></path>
                     </svg>`;
-                    
-                    if (file.type.startsWith('image/')) {
-                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                            <polyline points="21 15 16 10 5 21"></polyline>
-                        </svg>`;
-                    } else if (file.type.startsWith('video/')) {
-                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-                            <line x1="7" y1="2" x2="7" y2="22"></line>
-                            <line x1="17" y1="2" x2="17" y2="22"></line>
-                            <line x1="2" y1="12" x2="22" y2="12"></line>
-                            <line x1="2" y1="7" x2="7" y2="7"></line>
-                            <line x1="2" y1="17" x2="7" y2="17"></line>
-                            <line x1="17" y1="17" x2="22" y2="17"></line>
-                            <line x1="17" y1="7" x2="22" y2="7"></line>
-                        </svg>`;
-                    } else if (file.type.startsWith('audio/')) {
-                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 18V5l12-2v13"></path>
-                            <circle cx="6" cy="18" r="3"></circle>
-                            <circle cx="18" cy="16" r="3"></circle>
-                        </svg>`;
-                    } else if (file.type === 'application/pdf') {
-                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <path d="M9 13h6"></path>
-                            <path d="M9 17h6"></path>
-                            <path d="M9 9h1"></path>
-                        </svg>`;
-                    }
-                    
-                    nameCell.innerHTML = iconSvg;
-                    
-                    const fileInfo = document.createElement('div');
-                    fileInfo.innerHTML = `
-                        <div class="file-name">${file.title || file.name}</div>
-                        <div class="file-original-name">${file.title ? file.name : ''}</div>
-                    `;
-                    nameCell.appendChild(fileInfo);
-                    row.appendChild(nameCell);
-                    
-                    // File extension cell
-                    const extensionCell = document.createElement('td');
-                    extensionCell.className = 'file-extension';
-                    extensionCell.textContent = file.extension || 'N/A';
-                    row.appendChild(extensionCell);
-                    
-                    // File size cell
-                    const sizeCell = document.createElement('td');
-                    sizeCell.className = 'file-size';
-                    sizeCell.textContent = formatFileSize(file.size);
-                    row.appendChild(sizeCell);
-                    
-                    // Date cell
-                    const dateCell = document.createElement('td');
-                    dateCell.className = 'file-date';
-                    dateCell.textContent = formatDate(file.date);
-                    row.appendChild(dateCell);
-                    
-                    // Actions cell
-                    const actionsCell = document.createElement('td');
-                    actionsCell.className = 'file-actions';
-                    
-                    const downloadBtn = document.createElement('button');
-                    downloadBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>`;
-                    downloadBtn.title = 'Download';
-                    downloadBtn.onclick = () => downloadFile(file);
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'delete';
-                    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>`;
-                    deleteBtn.title = 'Delete';
-                    deleteBtn.onclick = () => showDeleteModal(file.id);
-                    
-                    actionsCell.appendChild(downloadBtn);
-                    actionsCell.appendChild(deleteBtn);
-                    row.appendChild(actionsCell);
-                    
-                    filesList.appendChild(row);
-                });
-            };
-            
-            request.onerror = function() {
-                showToast('Error loading files', true);
-            };
+                }
+                
+                nameCell.innerHTML = iconSvg;
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.innerHTML = `
+                    <div class="file-name">${file.title || file.name}</div>
+                    <div class="file-original-name">${file.title ? file.name : ''}</div>
+                `;
+                nameCell.appendChild(fileInfo);
+                row.appendChild(nameCell);
+                
+                // File extension cell
+                const extensionCell = document.createElement('td');
+                extensionCell.className = 'file-extension';
+                extensionCell.textContent = file.extension || 'N/A';
+                row.appendChild(extensionCell);
+                
+                // File size cell
+                const sizeCell = document.createElement('td');
+                sizeCell.className = 'file-size';
+                sizeCell.textContent = formatFileSize(file.size);
+                row.appendChild(sizeCell);
+                
+                // Date cell
+                const dateCell = document.createElement('td');
+                dateCell.className = 'file-date';
+                dateCell.textContent = formatDate(file.date);
+                row.appendChild(dateCell);
+                
+                // Actions cell
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'file-actions';
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>`;
+                downloadBtn.title = 'Download';
+                downloadBtn.onclick = () => {
+                    // Directly open the Discord URL for download
+                    window.open(file.url, '_blank');
+                };
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete';
+                deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>`;
+                deleteBtn.title = 'Delete';
+                deleteBtn.onclick = () => showDeleteModal(file.id);
+                
+                actionsCell.appendChild(downloadBtn);
+                actionsCell.appendChild(deleteBtn);
+                row.appendChild(actionsCell);
+                
+                filesList.appendChild(row);
+            });
         }
         
         function showDeleteModal(fileId) {
@@ -1123,18 +952,11 @@
         }
         
         function deleteFile(fileId) {
-            const transaction = db.transaction(['files'], 'readwrite');
-            const objectStore = transaction.objectStore('files');
-            const request = objectStore.delete(fileId);
+            // Remove from sharedFiles array
+            sharedFiles = sharedFiles.filter(file => file.id !== fileId);
             
-            request.onsuccess = function() {
-                showToast('File deleted successfully!');
-                loadFiles();
-            };
-            
-            request.onerror = function() {
-                showToast('Error deleting file', true);
-            };
+            showToast('File removed from list (Note: File remains on Discord)');
+            loadFiles();
         }
         
         function formatFileSize(bytes) {
