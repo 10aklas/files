@@ -81,7 +81,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             margin-bottom: 20px;
-            position: relative;
         }
         
         .upload-container:hover {
@@ -259,13 +258,24 @@
             color: var(--gray);
         }
         
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
         .progress-bar {
             height: 6px;
             background-color: #e9ecef;
             border-radius: 3px;
-            margin-top: 20px;
             overflow: hidden;
-            display: none;
         }
         
         .progress-bar-fill {
@@ -391,57 +401,6 @@
         .toast.error svg {
             color: var(--danger);
         }
-
-        /* File preview styles */
-        .file-preview-container {
-            display: none;
-            margin-top: 20px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-
-        .file-preview {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .file-preview-icon {
-            font-size: 40px;
-            color: var(--primary);
-        }
-
-        .file-preview-info {
-            flex: 1;
-        }
-
-        .file-preview-name {
-            font-weight: 500;
-            margin-bottom: 5px;
-            word-break: break-all;
-        }
-
-        .file-preview-size {
-            color: var(--gray);
-            font-size: 14px;
-        }
-
-        .file-preview-image {
-            max-width: 100px;
-            max-height: 100px;
-            border-radius: 4px;
-            object-fit: contain;
-        }
-
-        .remove-file-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--danger);
-            font-size: 20px;
-        }
     </style>
 </head>
 <body>
@@ -476,13 +435,6 @@
                 <input type="file" id="fileInput" style="display: none;" multiple>
             </div>
             
-            <!-- File preview container -->
-            <div class="file-preview-container" id="filePreviewContainer">
-                <div class="file-preview" id="filePreview">
-                    <!-- Preview content will be added here dynamically -->
-                </div>
-            </div>
-            
             <div class="input-group">
                 <label for="fileTitle">File Title</label>
                 <input type="text" id="fileTitle" placeholder="Enter a title for your file">
@@ -490,8 +442,14 @@
             
             <button class="btn" id="uploadBtn" disabled>Upload File</button>
             
-            <div class="progress-bar" id="progressBar">
-                <div class="progress-bar-fill" id="progressBarFill"></div>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-info">
+                    <span id="progressStatus">Uploading...</span>
+                    <span id="progressPercentage">0%</span>
+                </div>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
             </div>
         </div>
         
@@ -585,8 +543,11 @@
         const fileInput = document.getElementById('fileInput');
         const fileTitle = document.getElementById('fileTitle');
         const uploadBtn = document.getElementById('uploadBtn');
+        const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
         const progressBarFill = document.getElementById('progressBarFill');
+        const progressStatus = document.getElementById('progressStatus');
+        const progressPercentage = document.getElementById('progressPercentage');
         const filesList = document.getElementById('filesList');
         const emptyState = document.getElementById('emptyState');
         const searchInput = document.getElementById('searchInput');
@@ -595,11 +556,10 @@
         const cancelDelete = document.getElementById('cancelDelete');
         const confirmDelete = document.getElementById('confirmDelete');
         const toast = document.getElementById('toast');
-        const filePreviewContainer = document.getElementById('filePreviewContainer');
-        const filePreview = document.getElementById('filePreview');
         
         let currentFile = null;
         let fileToDelete = null;
+        let uploadInProgress = false;
         
         // Event Listeners
         dropArea.addEventListener('click', () => fileInput.click());
@@ -626,7 +586,7 @@
         fileInput.addEventListener('change', handleFileSelect);
         
         fileTitle.addEventListener('input', () => {
-            uploadBtn.disabled = !fileTitle.value.trim() || !currentFile;
+            uploadBtn.disabled = !fileTitle.value.trim() || !currentFile || uploadInProgress;
         });
         
         uploadBtn.addEventListener('click', uploadFile);
@@ -655,126 +615,71 @@
         function handleFileSelect() {
             if (fileInput.files.length > 0) {
                 currentFile = fileInput.files[0];
-                uploadBtn.disabled = !fileTitle.value.trim();
-                showFilePreview(currentFile);
+                uploadBtn.disabled = !fileTitle.value.trim() || uploadInProgress;
             }
-        }
-        
-        function showFilePreview(file) {
-            filePreviewContainer.style.display = 'block';
-            filePreview.innerHTML = '';
-            
-            // Create preview based on file type
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'file-preview-image';
-                    filePreview.appendChild(img);
-                    addFileInfoToPreview(file);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                // For non-image files, show an icon
-                const icon = document.createElement('div');
-                icon.className = 'file-preview-icon';
-                
-                // Choose icon based on file type
-                if (file.type.startsWith('video/')) {
-                    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-                        <line x1="7" y1="2" x2="7" y2="22"></line>
-                        <line x1="17" y1="2" x2="17" y2="22"></line>
-                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                        <line x1="2" y1="7" x2="7" y2="7"></line>
-                        <line x1="2" y1="17" x2="7" y2="17"></line>
-                        <line x1="17" y1="17" x2="22" y2="17"></line>
-                        <line x1="17" y1="7" x2="22" y2="7"></line>
-                    </svg>`;
-                } else if (file.type.startsWith('audio/')) {
-                    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 18V5l12-2v13"></path>
-                        <circle cx="6" cy="18" r="3"></circle>
-                        <circle cx="18" cy="16" r="3"></circle>
-                    </svg>`;
-                } else if (file.type === 'application/pdf') {
-                    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <path d="M9 13h6"></path>
-                        <path d="M9 17h6"></path>
-                        <path d="M9 9h1"></path>
-                    </svg>`;
-                } else {
-                    // Default file icon
-                    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                    </svg>`;
-                }
-                
-                filePreview.appendChild(icon);
-                addFileInfoToPreview(file);
-            }
-            
-            // Add remove button
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-file-btn';
-            removeBtn.innerHTML = '&times;';
-            removeBtn.title = 'Remove file';
-            removeBtn.onclick = removeFilePreview;
-            filePreview.appendChild(removeBtn);
-        }
-        
-        function addFileInfoToPreview(file) {
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'file-preview-info';
-            
-            const nameDiv = document.createElement('div');
-            nameDiv.className = 'file-preview-name';
-            nameDiv.textContent = file.name;
-            
-            const sizeDiv = document.createElement('div');
-            sizeDiv.className = 'file-preview-size';
-            sizeDiv.textContent = formatFileSize(file.size);
-            
-            infoDiv.appendChild(nameDiv);
-            infoDiv.appendChild(sizeDiv);
-            
-            // Insert the info div after the icon/image
-            if (filePreview.children.length > 0) {
-                filePreview.insertBefore(infoDiv, filePreview.children[1]);
-            } else {
-                filePreview.appendChild(infoDiv);
-            }
-        }
-        
-        function removeFilePreview() {
-            fileInput.value = '';
-            currentFile = null;
-            filePreviewContainer.style.display = 'none';
-            uploadBtn.disabled = true;
         }
         
         function uploadFile() {
-            if (!currentFile || !fileTitle.value.trim()) return;
+            if (!currentFile || !fileTitle.value.trim() || uploadInProgress) return;
+            
+            uploadInProgress = true;
+            uploadBtn.disabled = true;
             
             // Show progress bar
-            progressBar.style.display = 'block';
+            progressContainer.style.display = 'block';
             progressBarFill.style.width = '0%';
+            progressStatus.textContent = 'Uploading...';
+            progressPercentage.textContent = '0%';
             
-            // Simulate progress (in a real application, you'd use XHR or fetch with progress event)
+            // Simulate a more realistic upload progress
+            const fileSize = currentFile.size;
+            const chunkSize = Math.max(Math.floor(fileSize / 100), 100000); // 100 chunks or 100KB chunks, whichever is larger
+            let uploaded = 0;
             let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    progress = 100;
-                    saveFile();
-                }
+            
+            const updateProgress = () => {
+                // Simulate network conditions
+                const speedVariation = 0.2 + Math.random() * 0.8; // 20-100% of normal speed
+                const chunk = Math.floor(Math.random() * chunkSize * speedVariation);
+                
+                uploaded += chunk;
+                progress = Math.min(Math.floor((uploaded / fileSize) * 100), 100);
+                
                 progressBarFill.style.width = `${progress}%`;
-            }, 200);
+                progressPercentage.textContent = `${progress}%`;
+                
+                // Update status text based on progress
+                if (progress < 10) {
+                    progressStatus.textContent = 'Starting upload...';
+                } else if (progress < 30) {
+                    progressStatus.textContent = 'Uploading...';
+                } else if (progress < 70) {
+                    progressStatus.textContent = 'Transferring data...';
+                } else if (progress < 90) {
+                    progressStatus.textContent = 'Almost there...';
+                } else if (progress < 100) {
+                    progressStatus.textContent = 'Finalizing...';
+                }
+                
+                // Simulate occasional pauses
+                if (Math.random() < 0.1 && progress < 90) {
+                    // 10% chance of a small pause
+                    setTimeout(updateProgress, 300 + Math.random() * 700);
+                } else if (progress < 100) {
+                    // Continue uploading
+                    const delay = Math.random() * 100 + 50; // 50-150ms delay between chunks
+                    setTimeout(updateProgress, delay);
+                } else {
+                    // Upload complete
+                    progressStatus.textContent = 'Processing file...';
+                    setTimeout(() => {
+                        saveFile();
+                    }, 500);
+                }
+            };
+            
+            // Start the upload simulation
+            setTimeout(updateProgress, 300);
         }
         
         function saveFile() {
@@ -802,7 +707,13 @@
                 request.onerror = function() {
                     console.log('Error', request.error);
                     showToast('Error uploading file', true);
+                    resetUploadForm();
                 };
+            };
+            
+            reader.onerror = function() {
+                showToast('Error reading file', true);
+                resetUploadForm();
             };
             
             reader.readAsDataURL(currentFile);
@@ -812,10 +723,10 @@
             fileInput.value = '';
             fileTitle.value = '';
             currentFile = null;
-            uploadBtn.disabled = true;
-            progressBar.style.display = 'none';
+            uploadBtn.disabled = false;
+            progressContainer.style.display = 'none';
             progressBarFill.style.width = '0%';
-            filePreviewContainer.style.display = 'none';
+            uploadInProgress = false;
         }
         
         function loadFiles(searchTerm = '') {
