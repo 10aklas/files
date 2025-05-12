@@ -579,18 +579,93 @@
     </footer>
 
     <script>
-        // Enhanced Discord Webhook Integration
-        class DiscordWebhook {
-            constructor(webhookUrl) {
-                this.webhookUrl = webhookUrl;
-                // This is a simple in-memory cache for demo purposes
-                // In a real app, you'd need to fetch messages from your Discord channel
-                this.registeredUsers = [
-                    { username: 'demo', password: 'demo123' }
-                ];
+        // Discord Integration
+        class DiscordAuth {
+            constructor(channelId, botToken) {
+                this.channelId = channelId;
+                this.botToken = botToken;
+                this.baseUrl = 'https://discord.com/api/v9';
             }
             
-            // Send registration data to Discord webhook
+            // Fetch all messages from the Discord channel
+            async fetchAllMessages() {
+                try {
+                    let messages = [];
+                    let lastMessageId = null;
+                    let hasMore = true;
+                    
+                    while (hasMore) {
+                        const url = `${this.baseUrl}/channels/${this.channelId}/messages` + 
+                                   (lastMessageId ? `?before=${lastMessageId}` : '');
+                        
+                        const response = await fetch(url, {
+                            headers: {
+                                'Authorization': `Bot ${this.botToken}`
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch messages: ${response.status}`);
+                        }
+                        
+                        const newMessages = await response.json();
+                        
+                        if (newMessages.length === 0) {
+                            hasMore = false;
+                        } else {
+                            messages = messages.concat(newMessages);
+                            lastMessageId = newMessages[newMessages.length - 1].id;
+                        }
+                    }
+                    
+                    return messages;
+                } catch (error) {
+                    console.error('Error fetching messages:', error);
+                    throw error;
+                }
+            }
+            
+            // Find user credentials in messages
+            async findUserCredentials(username, password) {
+                try {
+                    const messages = await this.fetchAllMessages();
+                    const credentialPattern = /NEW_USER_REGISTERED:\s*([^:]+):([^\s]+)/;
+                    
+                    for (const message of messages) {
+                        const match = message.content.match(credentialPattern);
+                        if (match && match[1] === username && match[2] === password) {
+                            return true;
+                        }
+                    }
+                    
+                    return false;
+                } catch (error) {
+                    console.error('Error validating user:', error);
+                    throw error;
+                }
+            }
+            
+            // Check if username exists
+            async usernameExists(username) {
+                try {
+                    const messages = await this.fetchAllMessages();
+                    const credentialPattern = /NEW_USER_REGISTERED:\s*([^:]+):([^\s]+)/;
+                    
+                    for (const message of messages) {
+                        const match = message.content.match(credentialPattern);
+                        if (match && match[1] === username) {
+                            return true;
+                        }
+                    }
+                    
+                    return false;
+                } catch (error) {
+                    console.error('Error checking username:', error);
+                    throw error;
+                }
+            }
+            
+            // Register a new user by sending a message to Discord
             async registerUser(username, password) {
                 try {
                     // First check if username exists
@@ -608,15 +683,15 @@
                         throw new Error('Password must be at least 6 characters');
                     }
                     
-                    // Send to Discord
-                    const response = await fetch(this.webhookUrl, {
+                    // Send registration message to Discord
+                    const response = await fetch(`${this.baseUrl}/channels/${this.channelId}/messages`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Authorization': `Bot ${this.botToken}`,
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            content: `NEW_USER_REGISTERED: ${username}:${password}`,
-                            username: 'FileShare Registration'
+                            content: `NEW_USER_REGISTERED: ${username}:${password}`
                         })
                     });
                     
@@ -624,8 +699,6 @@
                         throw new Error('Failed to register user');
                     }
                     
-                    // Add to local cache (in a real app, you'd fetch from Discord)
-                    this.registeredUsers.push({ username, password });
                     return true;
                 } catch (error) {
                     console.error('Registration error:', error);
@@ -636,31 +709,15 @@
             // Validate user credentials
             async validateUser(username, password) {
                 try {
-                    // In a real implementation, you would:
-                    // 1. Fetch messages from your Discord channel
-                    // 2. Parse them to find the user's registration
-                    // 3. Compare the credentials
-                    
-                    // For this demo, we're using the in-memory cache
-                    const user = this.registeredUsers.find(u => 
-                        u.username === username && u.password === password
-                    );
-                    
-                    if (!user) {
+                    const isValid = await this.findUserCredentials(username, password);
+                    if (!isValid) {
                         throw new Error('Invalid username or password');
                     }
-                    
-                    return { username: user.username };
+                    return { username };
                 } catch (error) {
                     console.error('Login error:', error);
                     throw error;
                 }
-            }
-            
-            // Check if username exists
-            async usernameExists(username) {
-                // In a real implementation, you would check Discord messages
-                return this.registeredUsers.some(u => u.username === username);
             }
         }
 
@@ -711,8 +768,8 @@
         // App Controller
         class FileShareApp {
             constructor() {
-                // Replace with your actual Discord webhook URL
-                this.discord = new DiscordWebhook('https://discord.com/api/webhooks/1371353582565326898/wKRTuaxdRU8g5LPlFGm_IG5U1opVGQQM8XYqVMk8Pg3dmNNB2w734bX1XpMxPHCnjNUy');
+                // Replace with your actual Discord channel ID and bot token
+                this.discord = new DiscordAuth('1371360292251897931', 'MTM3MTM2MDY3OTY0NjMzNTA1Ng.G7Hq-m.LmzO1W-uIVYLM6Yvr5ntfIrCteTBxxgcxdm03k');
                 this.db = new FileShareDatabase();
                 this.currentUser = null;
                 
