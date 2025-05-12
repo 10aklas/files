@@ -620,10 +620,15 @@
 
     <script>
         // Discord Webhook URL - replace with your actual webhook URL
-        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1371536318424678410/OETxs2y-VaA60lX0KrzZmpubIGZSyznMXNCVi6CjJriUCwwf3roLcqXNb2j6gBfHeuoh';
+        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1371553634667724920/6IqJk1pyifJvZGK-fbg7Rn686oCb9CsF11hs3P8_Tevty66KqbA220X4RI0uJ7_BchUy';
         
-        // Array to store file metadata (temporary for current session)
-        let sharedFiles = [];
+        // Discord API URL to fetch messages (you'll need to create a bot for this)
+        // Note: You'll need to set up a Discord bot and get its token for this to work
+        const DISCORD_CHANNEL_ID = '1371552673073070110';
+        const DISCORD_BOT_TOKEN = 'MTM3MTM2MDY3OTY0NjMzNTA1Ng.G_Ur1v.CKTrn5tDYlJX2A6AVLH7m2Pa-rnLBqQmMhpiGw';
+        
+        // Array to store all files metadata
+        let allFiles = [];
         
         // DOM Elements
         const dropArea = document.getElementById('dropArea');
@@ -651,6 +656,11 @@
         let currentFile = null;
         let fileToDelete = null;
         let uploadInProgress = false;
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchFilesFromDiscord();
+        });
         
         // Event Listeners
         dropArea.addEventListener('click', () => fileInput.click());
@@ -792,8 +802,8 @@
                 // Store the file URL in our metadata
                 fileMetadata.url = data.attachments[0].url;
                 
-                // Add to shared files array
-                sharedFiles.push(fileMetadata);
+                // Add to allFiles array
+                allFiles.push(fileMetadata);
                 
                 showToast('File shared successfully!');
                 resetUploadForm();
@@ -808,21 +818,83 @@
             }
         }
         
-        function resetUploadForm() {
-            fileInput.value = '';
-            fileTitle.value = '';
-            currentFile = null;
-            uploadBtn.disabled = false;
-            progressContainer.style.display = 'none';
-            progressBarFill.style.width = '0%';
-            uploadInProgress = false;
-            filePreview.classList.remove('active');
+        async function fetchFilesFromDiscord() {
+            try {
+                showToast('Loading shared files...');
+                
+                // Note: This requires a Discord bot with proper permissions
+                // and the messages.read scope to fetch messages from the channel
+                const response = await fetch(`https://discord.com/api/v10/channels/${DISCORD_CHANNEL_ID}/messages`, {
+                    headers: {
+                        'Authorization': `Bot ${DISCORD_BOT_TOKEN}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch messages: ${response.status}`);
+                }
+                
+                const messages = await response.json();
+                
+                // Process messages to extract file information
+                allFiles = messages
+                    .filter(msg => msg.attachments && msg.attachments.length > 0)
+                    .map(msg => {
+                        const attachment = msg.attachments[0];
+                        const embed = msg.embeds && msg.embeds[0];
+                        
+                        // Extract metadata from the embed if available
+                        let metadata = {
+                            id: attachment.id,
+                            title: attachment.filename,
+                            name: attachment.filename,
+                            url: attachment.url,
+                            size: attachment.size,
+                            date: msg.timestamp,
+                            type: attachment.content_type || ''
+                        };
+                        
+                        if (embed) {
+                            embed.fields.forEach(field => {
+                                if (field.name === "Display Name" && field.value !== "None") {
+                                    metadata.title = field.value;
+                                }
+                                if (field.name === "Original Name") {
+                                    metadata.name = field.value;
+                                }
+                                if (field.name === "File ID") {
+                                    metadata.id = field.value;
+                                }
+                            });
+                        }
+                        
+                        // Get file extension
+                        const fileNameParts = metadata.name.split('.');
+                        metadata.extension = fileNameParts.length > 1 ? fileNameParts.pop() : '';
+                        
+                        return metadata;
+                    });
+                
+                loadFiles();
+                showToast('Files loaded successfully');
+                
+            } catch (error) {
+                console.error('Error fetching files:', error);
+                showToast('Error loading files: ' + error.message, true);
+                
+                // Fallback: Load from localStorage if available
+                const savedFiles = localStorage.getItem('shadowShareFiles');
+                if (savedFiles) {
+                    allFiles = JSON.parse(savedFiles);
+                    loadFiles();
+                }
+            }
         }
         
         function loadFiles(searchTerm = '') {
             filesList.innerHTML = '';
             
-            if (sharedFiles.length === 0) {
+            if (allFiles.length === 0) {
                 emptyState.style.display = 'block';
                 filesList.style.display = 'none';
                 return;
@@ -832,10 +904,10 @@
             filesList.style.display = 'table-row-group';
             
             const filteredFiles = searchTerm 
-                ? sharedFiles.filter(file => 
-                    file.title.toLowerCase().includes(searchTerm) || 
-                    file.name.toLowerCase().includes(searchTerm))
-                : sharedFiles;
+                ? allFiles.filter(file => 
+                    (file.title && file.title.toLowerCase().includes(searchTerm)) || 
+                    (file.name && file.name.toLowerCase().includes(searchTerm)))
+                : allFiles;
             
             filteredFiles.forEach(file => {
                 const row = document.createElement('tr');
@@ -850,13 +922,13 @@
                     <polyline points="14 2 14 8 20 8"></polyline>
                 </svg>`;
                 
-                if (file.type.startsWith('image/')) {
+                if (file.type && file.type.startsWith('image/')) {
                     iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                         <circle cx="8.5" cy="8.5" r="1.5"></circle>
                         <polyline points="21 15 16 10 5 21"></polyline>
                     </svg>`;
-                } else if (file.type.startsWith('video/')) {
+                } else if (file.type && file.type.startsWith('video/')) {
                     iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
                         <line x1="7" y1="2" x2="7" y2="22"></line>
@@ -867,7 +939,7 @@
                         <line x1="17" y1="17" x2="22" y2="17"></line>
                         <line x1="17" y1="7" x2="22" y2="7"></line>
                     </svg>`;
-                } else if (file.type.startsWith('audio/')) {
+                } else if (file.type && file.type.startsWith('audio/')) {
                     iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 18V5l12-2v13"></path>
                         <circle cx="6" cy="18" r="3"></circle>
@@ -952,14 +1024,29 @@
         }
         
         function deleteFile(fileId) {
-            // Remove from sharedFiles array
-            sharedFiles = sharedFiles.filter(file => file.id !== fileId);
+            // Remove from allFiles array
+            allFiles = allFiles.filter(file => file.id !== fileId);
+            
+            // Save to localStorage as fallback
+            localStorage.setItem('shadowShareFiles', JSON.stringify(allFiles));
             
             showToast('File removed from list (Note: File remains on Discord)');
             loadFiles();
         }
         
+        function resetUploadForm() {
+            fileInput.value = '';
+            fileTitle.value = '';
+            currentFile = null;
+            uploadBtn.disabled = false;
+            progressContainer.style.display = 'none';
+            progressBarFill.style.width = '0%';
+            uploadInProgress = false;
+            filePreview.classList.remove('active');
+        }
+        
         function formatFileSize(bytes) {
+            if (!bytes) return 'Unknown size';
             if (bytes === 0) return '0 Bytes';
             
             const k = 1024;
@@ -970,6 +1057,7 @@
         }
         
         function formatDate(dateString) {
+            if (!dateString) return 'Unknown date';
             const date = new Date(dateString);
             return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
         }
