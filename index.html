@@ -579,20 +579,69 @@
     </footer>
 
     <script>
-        // Permanent Database Simulation
+        // Discord Webhook Integration
+        class DiscordWebhook {
+            constructor(webhookUrl) {
+                this.webhookUrl = webhookUrl;
+                // This is a simple in-memory cache for demo purposes
+                // In a real app, you'd need to fetch messages from your Discord channel
+                this.registeredUsers = [
+                    { username: 'demo', password: 'demo123' }
+                ];
+            }
+            
+            // Send registration data to Discord webhook
+            async registerUser(username, password) {
+                try {
+                    const response = await fetch(this.webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            content: `NEW_USER: ${username}:${password}`,
+                            username: 'FileShare Registration'
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to send to webhook');
+                    }
+                    
+                    // Add to local cache (in a real app, you'd fetch from Discord)
+                    this.registeredUsers.push({ username, password });
+                    return true;
+                } catch (error) {
+                    console.error('Webhook error:', error);
+                    return false;
+                }
+            }
+            
+            // Validate user credentials
+            async validateUser(username, password) {
+                // In a real implementation, you would:
+                // 1. Fetch messages from your Discord channel
+                // 2. Parse them to find the user's registration
+                // 3. Compare the credentials
+                
+                // For this demo, we're using the in-memory cache
+                const user = this.registeredUsers.find(u => 
+                    u.username === username && u.password === password
+                );
+                
+                return user ? { username } : null;
+            }
+            
+            // Check if username exists
+            async usernameExists(username) {
+                // In a real implementation, you would check Discord messages
+                return this.registeredUsers.some(u => u.username === username);
+            }
+        }
+
+        // Permanent Database Simulation (for files only)
         class FileShareDatabase {
             constructor() {
-                // Initialize with demo data if empty
-                this.users = [
-                    { 
-                        id: '1', 
-                        username: 'demo', 
-                        password: 'demo123', 
-                        createdAt: new Date().toISOString(),
-                        lastLogin: new Date().toISOString()
-                    }
-                ];
-                
                 this.files = [
                     {
                         id: '1',
@@ -605,20 +654,6 @@
                         data: 'data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSPj4Kc3RyZWFtCkJUCjAgMCBUZAovRjEgMTAwIFRmCihIZWxsbyBXb3JsZCkgVGoKRVQKZW5kc3RyZWFtCmVuZG9iagoKMyAwIG9iagoxMDAKZW5kb2JqCgp0cmFpbGVyCjw8L1Jvb3QgMSAwIFI+PgplbmRvYmoKCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFI+PgplbmRvYmoKCnN0YXJ0eHJlZgo0NQolJUVPRgo='
                     }
                 ];
-            }
-            
-            // User methods
-            addUser(user) {
-                this.users.push(user);
-                return user;
-            }
-            
-            findUserByUsername(username) {
-                return this.users.find(u => u.username === username);
-            }
-            
-            validateUser(username, password) {
-                return this.users.find(u => u.username === username && u.password === password);
             }
             
             // File methods
@@ -651,6 +686,8 @@
         // App Controller
         class FileShareApp {
             constructor() {
+                // Replace with your actual Discord webhook URL
+                this.discord = new DiscordWebhook('https://discord.com/api/webhooks/1371353582565326898/wKRTuaxdRU8g5LPlFGm_IG5U1opVGQQM8XYqVMk8Pg3dmNNB2w734bX1XpMxPHCnjNUy');
                 this.db = new FileShareDatabase();
                 this.currentUser = null;
                 
@@ -773,7 +810,7 @@
                 this.authMessage.style.display = 'block';
             }
             
-            registerUser(username, password) {
+            async registerUser(username, password) {
                 // Validate
                 if (username.length < 3) {
                     this.showAuthMessage('Username must be at least 3 characters', 'error');
@@ -786,22 +823,22 @@
                 }
                 
                 // Check if exists
-                if (this.db.findUserByUsername(username)) {
+                const exists = await this.discord.usernameExists(username);
+                if (exists) {
                     this.showAuthMessage('Username already exists', 'error');
                     return;
                 }
                 
-                // Create user
-                const newUser = {
-                    id: Date.now().toString(),
-                    username,
-                    password,
-                    createdAt: new Date().toISOString(),
-                    lastLogin: new Date().toISOString()
-                };
+                // Send to Discord webhook
+                const success = await this.discord.registerUser(username, password);
                 
-                this.db.addUser(newUser);
-                this.currentUser = newUser;
+                if (!success) {
+                    this.showAuthMessage('Failed to register. Please try again.', 'error');
+                    return;
+                }
+                
+                // Create user session
+                this.currentUser = { username };
                 
                 this.hideAuthModal();
                 this.checkAuth();
@@ -809,16 +846,14 @@
                 this.showToast('Registration successful!', 'success');
             }
             
-            loginUser(username, password) {
-                const user = this.db.validateUser(username, password);
+            async loginUser(username, password) {
+                const user = await this.discord.validateUser(username, password);
                 
                 if (!user) {
                     this.showAuthMessage('Invalid username or password', 'error');
                     return;
                 }
                 
-                // Update last login
-                user.lastLogin = new Date().toISOString();
                 this.currentUser = user;
                 
                 this.hideAuthModal();
@@ -983,7 +1018,7 @@
                 });
                 
                 // Auth form submission
-                this.authForm.addEventListener('submit', (e) => {
+                this.authForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
                     const username = document.getElementById('username').value.trim();
@@ -995,9 +1030,9 @@
                     }
                     
                     if (this.authTitle.textContent === 'Login') {
-                        this.loginUser(username, password);
+                        await this.loginUser(username, password);
                     } else {
-                        this.registerUser(username, password);
+                        await this.registerUser(username, password);
                     }
                 });
                 
