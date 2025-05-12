@@ -226,6 +226,13 @@
             font-size: 14px;
         }
         
+        .file-extension {
+            color: var(--gray);
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
         .file-actions {
             display: flex;
             gap: 10px;
@@ -364,7 +371,9 @@
             }
             
             .files-table th:nth-child(3),
-            .files-table td:nth-child(3) {
+            .files-table td:nth-child(3),
+            .files-table th:nth-child(4),
+            .files-table td:nth-child(4) {
                 display: none;
             }
         }
@@ -467,6 +476,7 @@
                 <thead>
                     <tr>
                         <th>File Name</th>
+                        <th>Extension</th>
                         <th>Size</th>
                         <th>Upload Date</th>
                         <th>Actions</th>
@@ -692,9 +702,14 @@
                 
                 const fileReader = new FileReader();
                 fileReader.onload = function(e) {
+                    // Get file extension
+                    const fileNameParts = currentFile.name.split('.');
+                    const fileExtension = fileNameParts.length > 1 ? fileNameParts.pop() : '';
+                    
                     const fileData = {
                         title: fileTitle.value.trim(),
                         name: currentFile.name,
+                        extension: fileExtension,
                         size: currentFile.size,
                         type: currentFile.type,
                         data: e.target.result,
@@ -824,6 +839,12 @@
                     nameCell.appendChild(fileInfo);
                     row.appendChild(nameCell);
                     
+                    // File extension cell
+                    const extensionCell = document.createElement('td');
+                    extensionCell.className = 'file-extension';
+                    extensionCell.textContent = file.extension || 'N/A';
+                    row.appendChild(extensionCell);
+                    
                     // File size cell
                     const sizeCell = document.createElement('td');
                     sizeCell.textContent = formatFileSize(file.size);
@@ -930,6 +951,11 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
+        }
+        
+        // Helper function to get file extension
+        function getFileExtension(filename) {
+            return filename.split('.').pop().toLowerCase();
         }
     </script>
 </body>
