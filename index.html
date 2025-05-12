@@ -618,8 +618,12 @@
         <span id="toastMessage">File shared successfully!</span>
     </div>
 
-    <!-- The JavaScript remains exactly the same as in your original code -->
     <script>
+        // Discord Webhook URL - replace with your actual webhook URL
+        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1371536318424678410/OETxs2y-VaA60lX0KrzZmpubIGZSyznMXNCVi6CjJriUCwwf3roLcqXNb2j6gBfHeuoh';
+        // Chunk size (1MB chunks)
+        const CHUNK_SIZE = 1 * 1024 * 1024;
+        
         // Initialize IndexedDB
         let db;
         const request = window.indexedDB.open('ShadowShareDB', 1);
@@ -746,7 +750,7 @@
             }
         }
         
-        function uploadFile() {
+        async function uploadFile() {
             if (!currentFile || !fileTitle.value.trim() || uploadInProgress) return;
             
             uploadInProgress = true;
@@ -755,115 +759,216 @@
             // Show progress bar
             progressContainer.style.display = 'block';
             progressBarFill.style.width = '0%';
-            progressStatus.textContent = 'Uploading...';
+            progressStatus.textContent = 'Preparing file...';
             progressPercentage.textContent = '0%';
             
-            // Simulate a more realistic upload progress
-            const fileSize = currentFile.size;
-            const chunkSize = Math.max(Math.floor(fileSize / 100), 100000); // 100 chunks or 100KB chunks, whichever is larger
-            let uploaded = 0;
-            let progress = 0;
-            
-            const updateProgress = () => {
-                // Simulate network conditions
-                const speedVariation = 0.2 + Math.random() * 0.8; // 20-100% of normal speed
-                const chunk = Math.floor(Math.random() * chunkSize * speedVariation);
+            try {
+                // Get file extension
+                const fileNameParts = currentFile.name.split('.');
+                const fileExtension = fileNameParts.length > 1 ? fileNameParts.pop() : '';
                 
-                uploaded += chunk;
-                progress = Math.min(Math.floor((uploaded / fileSize) * 100), 100);
-                
-                progressBarFill.style.width = `${progress}%`;
-                progressPercentage.textContent = `${progress}%`;
-                
-                // Update status text based on progress
-                if (progress < 10) {
-                    progressStatus.textContent = 'Starting upload...';
-                } else if (progress < 30) {
-                    progressStatus.textContent = 'Uploading...';
-                } else if (progress < 70) {
-                    progressStatus.textContent = 'Transferring data...';
-                } else if (progress < 90) {
-                    progressStatus.textContent = 'Almost there...';
-                } else if (progress < 100) {
-                    progressStatus.textContent = 'Finalizing...';
-                }
-                
-                // Simulate occasional pauses
-                if (Math.random() < 0.1 && progress < 90) {
-                    // 10% chance of a small pause
-                    setTimeout(updateProgress, 300 + Math.random() * 700);
-                } else if (progress < 100) {
-                    // Continue uploading
-                    const delay = Math.random() * 100 + 50; // 50-150ms delay between chunks
-                    setTimeout(updateProgress, delay);
-                } else {
-                    // Upload complete
-                    progressStatus.textContent = 'Processing file...';
-                    setTimeout(() => {
-                        saveFile();
-                    }, 500);
-                }
-            };
-            
-            // Start the upload simulation
-            setTimeout(updateProgress, 300);
-        }
-        
-        function saveFile() {
-            const reader = new FileReader();
-            
-            // Use readAsArrayBuffer for binary files
-            reader.onload = function(e) {
-                const arrayBuffer = e.target.result;
-                const blob = new Blob([arrayBuffer], { type: currentFile.type });
-                
-                const fileReader = new FileReader();
-                fileReader.onload = function(e) {
-                    // Get file extension
-                    const fileNameParts = currentFile.name.split('.');
-                    const fileExtension = fileNameParts.length > 1 ? fileNameParts.pop() : '';
-                    
-                    const fileData = {
-                        title: fileTitle.value.trim(),
-                        name: currentFile.name,
-                        extension: fileExtension,
-                        size: currentFile.size,
-                        type: currentFile.type,
-                        data: e.target.result,
-                        date: new Date().toISOString()
-                    };
-                    
-                    const transaction = db.transaction(['files'], 'readwrite');
-                    const objectStore = transaction.objectStore('files');
-                    const request = objectStore.add(fileData);
-                    
-                    request.onsuccess = function() {
-                        showToast('File shared successfully!');
-                        resetUploadForm();
-                        loadFiles();
-                    };
-                    
-                    request.onerror = function() {
-                        console.log('Error', request.error);
-                        showToast('Error sharing file', true);
-                        resetUploadForm();
-                    };
+                // Create file metadata
+                const fileId = generateFileId();
+                const fileMetadata = {
+                    id: fileId,
+                    title: fileTitle.value.trim(),
+                    name: currentFile.name,
+                    extension: fileExtension,
+                    size: currentFile.size,
+                    type: currentFile.type,
+                    chunks: Math.ceil(currentFile.size / CHUNK_SIZE),
+                    date: new Date().toISOString()
                 };
                 
-                fileReader.onerror = function() {
-                    showToast('Error reading file', true);
+                // Read file as ArrayBuffer
+                const arrayBuffer = await readFileAsArrayBuffer(currentFile);
+                
+                // Split file into chunks
+                const chunks = splitFileIntoChunks(arrayBuffer, CHUNK_SIZE);
+                
+                // Upload chunks to Discord
+                progressStatus.textContent = 'Uploading chunks...';
+                
+                let uploadedChunks = 0;
+                const chunkUrls = [];
+                
+                for (let i = 0; i < chunks.length; i++) {
+                    const chunk = chunks[i];
+                    const chunkName = `${fileId}_${i}.chunk`;
+                    
+                    // Create a blob from the chunk
+                    const blob = new Blob([chunk], { type: 'application/octet-stream' });
+                    
+                    // Upload chunk to Discord
+                    const chunkUrl = await uploadChunkToDiscord(blob, chunkName, fileMetadata);
+                    chunkUrls.push(chunkUrl);
+                    
+                    // Update progress
+                    uploadedChunks++;
+                    const progress = Math.floor((uploadedChunks / chunks.length) * 100);
+                    progressBarFill.style.width = `${progress}%`;
+                    progressPercentage.textContent = `${progress}%`;
+                    progressStatus.textContent = `Uploading chunk ${uploadedChunks} of ${chunks.length}...`;
+                }
+                
+                // Store metadata in IndexedDB with chunk URLs
+                fileMetadata.chunkUrls = chunkUrls;
+                
+                const transaction = db.transaction(['files'], 'readwrite');
+                const objectStore = transaction.objectStore('files');
+                const request = objectStore.add(fileMetadata);
+                
+                request.onsuccess = function() {
+                    showToast('File shared successfully!');
+                    resetUploadForm();
+                    loadFiles();
+                };
+                
+                request.onerror = function() {
+                    console.log('Error', request.error);
+                    showToast('Error sharing file', true);
                     resetUploadForm();
                 };
                 
-                fileReader.readAsDataURL(blob);
-            };
-            
-            reader.onerror = function() {
-                showToast('Error reading file', true);
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('Error uploading file: ' + error.message, true);
                 resetUploadForm();
+            } finally {
+                uploadInProgress = false;
+            }
+        }
+        
+        // Helper function to read file as ArrayBuffer
+        function readFileAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Error reading file'));
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        // Helper function to split file into chunks
+        function splitFileIntoChunks(arrayBuffer, chunkSize) {
+            const chunks = [];
+            let offset = 0;
+            
+            while (offset < arrayBuffer.byteLength) {
+                const end = Math.min(offset + chunkSize, arrayBuffer.byteLength);
+                const chunk = arrayBuffer.slice(offset, end);
+                chunks.push(chunk);
+                offset = end;
+            }
+            
+            return chunks;
+        }
+        
+        // Function to upload a chunk to Discord
+        async function uploadChunkToDiscord(blob, filename, metadata) {
+            const formData = new FormData();
+            formData.append('file', blob, filename);
+            
+            // Add metadata as a comment
+            const comment = {
+                content: `File chunk for ${metadata.name} (ID: ${metadata.id})`,
+                embeds: [{
+                    title: "File Metadata",
+                    fields: [
+                        { name: "File ID", value: metadata.id, inline: true },
+                        { name: "Original Name", value: metadata.name, inline: true },
+                        { name: "Chunk", value: filename, inline: true },
+                        { name: "Total Size", value: formatFileSize(metadata.size), inline: true },
+                        { name: "Total Chunks", value: metadata.chunks.toString(), inline: true }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
             };
             
-            reader.readAsArrayBuffer(currentFile);
+            formData.append('payload_json', JSON.stringify(comment));
+            
+            try {
+                const response = await fetch(DISCORD_WEBHOOK_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Discord API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data.attachments[0].url; // Return the URL of the uploaded chunk
+            } catch (error) {
+                console.error('Error uploading chunk to Discord:', error);
+                throw error;
+            }
+        }
+        
+        // Modified downloadFile function to reassemble chunks
+        async function downloadFile(file) {
+            try {
+                showToast('Preparing download...');
+                
+                // Show progress bar
+                progressContainer.style.display = 'block';
+                progressBarFill.style.width = '0%';
+                progressStatus.textContent = 'Downloading chunks...';
+                progressPercentage.textContent = '0%';
+                
+                // Download all chunks
+                const chunks = [];
+                
+                for (let i = 0; i < file.chunkUrls.length; i++) {
+                    progressStatus.textContent = `Downloading chunk ${i+1} of ${file.chunkUrls.length}...`;
+                    const progress = Math.floor(((i + 1) / file.chunkUrls.length) * 100);
+                    progressBarFill.style.width = `${progress}%`;
+                    progressPercentage.textContent = `${progress}%`;
+                    
+                    const chunkUrl = file.chunkUrls[i];
+                    const response = await fetch(chunkUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to download chunk ${i}`);
+                    }
+                    
+                    const chunkData = await response.arrayBuffer();
+                    chunks.push(chunkData);
+                }
+                
+                // Combine chunks
+                progressStatus.textContent = 'Assembling file...';
+                
+                const totalSize = chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0);
+                const combinedBuffer = new Uint8Array(totalSize);
+                
+                let offset = 0;
+                for (const chunk of chunks) {
+                    combinedBuffer.set(new Uint8Array(chunk), offset);
+                    offset += chunk.byteLength;
+                }
+                
+                // Create blob and download
+                const blob = new Blob([combinedBuffer], { type: file.type });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = file.name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up
+                URL.revokeObjectURL(blobUrl);
+                progressContainer.style.display = 'none';
+                showToast('Download complete!');
+                
+            } catch (error) {
+                console.error('Download error:', error);
+                showToast('Error downloading file: ' + error.message, true);
+                progressContainer.style.display = 'none';
+            }
         }
         
         function resetUploadForm() {
@@ -1012,15 +1117,6 @@
             };
         }
         
-        function downloadFile(file) {
-            const link = document.createElement('a');
-            link.href = file.data;
-            link.download = file.name;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
         function showDeleteModal(fileId) {
             fileToDelete = fileId;
             deleteModal.style.display = 'flex';
@@ -1073,9 +1169,9 @@
             }, 3000);
         }
         
-        // Helper function to get file extension
-        function getFileExtension(filename) {
-            return filename.split('.').pop().toLowerCase();
+        // Helper function to generate a unique file ID
+        function generateFileId() {
+            return 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
     </script>
 </body>
