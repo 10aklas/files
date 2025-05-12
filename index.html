@@ -3,1187 +3,848 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileShare - Permanent File Sharing</title>
+    <title>FileVault - Unlimited File Storage</title>
     <style>
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3a0ca3;
-            --accent-color: #4cc9f0;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4caf50;
-            --warning-color: #ff9800;
-            --danger-color: #f44336;
-            --gray-color: #6c757d;
+            --primary: #4361ee;
+            --dark: #3a0ca3;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --border: #dee2e6;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         body {
-            background-color: #f0f2f5;
-            color: var(--dark-color);
+            background-color: var(--light);
+            color: #333;
             line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
         }
-
-        header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logo i {
-            color: var(--accent-color);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-        }
-
-        .nav-links button {
-            background: transparent;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s ease;
-            border-radius: 4px;
-        }
-
-        .nav-links button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-links .highlight {
-            background-color: var(--accent-color);
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-
-        .nav-links .highlight:hover {
-            background-color: #3db8de;
-        }
-
-        main {
-            flex: 1;
-            padding: 2rem;
+        
+        .container {
             max-width: 1200px;
             margin: 0 auto;
-            width: 100%;
+            padding: 20px;
         }
-
-        .container {
+        
+        header {
             background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-            padding: 2rem;
-            margin-bottom: 2rem;
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
         }
-
-        .search-container {
+        
+        .header-content {
             display: flex;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            border-radius: 8px;
-            overflow: hidden;
+            align-items: center;
+            justify-content: space-between;
         }
-
-        .search-container input {
-            flex: 1;
-            padding: 1rem;
-            border: none;
-            font-size: 1rem;
-            outline: none;
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
         }
-
-        .search-container button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0 1.5rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        
+        .logo svg {
+            margin-right: 10px;
         }
-
-        .search-container button:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
+        
+        .upload-section {
             background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
         }
-
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
+        
+        h2 {
+            color: var(--dark);
+            margin-bottom: 20px;
         }
-
-        th {
-            background-color: #f8f9fa;
-            color: var(--gray-color);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.5px;
+        
+        .upload-container {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
         }
-
-        tbody tr:hover {
+        
+        .upload-container:hover {
+            border-color: var(--primary);
             background-color: rgba(67, 97, 238, 0.05);
         }
-
-        .file-title {
+        
+        .upload-container svg {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .upload-container p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .upload-container.highlight {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: 500;
-            color: var(--primary-color);
-            cursor: pointer;
         }
-
-        .file-size {
-            color: var(--gray-color);
-            font-size: 0.9rem;
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 16px;
         }
-
-        .file-date {
-            color: var(--gray-color);
-            font-size: 0.9rem;
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
         }
-
-        .file-user {
-            font-weight: 500;
-        }
-
-        .action-btn {
-            background-color: var(--primary-color);
+        
+        .btn {
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 12px 24px;
             border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .action-btn:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .auth-container {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-
-        .auth-box {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .auth-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .auth-header h2 {
-            font-size: 1.5rem;
-            color: var(--dark-color);
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--gray-color);
-        }
-
-        .auth-form input {
-            width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-
-        .auth-form input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
-        .auth-form button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .auth-form button:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .auth-toggle {
-            text-align: center;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .auth-toggle a {
-            color: var(--primary-color);
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .auth-toggle a:hover {
-            text-decoration: underline;
-        }
-
-        .upload-container {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-
-        .upload-box {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .upload-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .upload-header h2 {
-            font-size: 1.5rem;
-            color: var(--dark-color);
-        }
-
-        .upload-form input {
-            width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-
-        .upload-form input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
-        .file-drop-area {
-            border: 2px dashed #ddd;
-            border-radius: 8px;
-            padding: 2rem;
-            text-align: center;
-            margin-bottom: 1rem;
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
-        .file-drop-area:hover, .file-drop-area.active {
-            border-color: var(--primary-color);
+        
+        .btn:hover {
+            background-color: var(--dark);
+        }
+        
+        .btn:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+        }
+        
+        .search-bar {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-bar input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .search-bar svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+        
+        .files-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+        
+        .files-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .files-table th {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 2px solid var(--border);
+            color: var(--gray);
+            font-weight: 600;
+        }
+        
+        .files-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .files-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .files-table tr:hover {
             background-color: rgba(67, 97, 238, 0.05);
         }
-
-        .file-upload-icon {
-            font-size: 3rem;
-            color: var(--gray-color);
-            margin-bottom: 1rem;
+        
+        .file-icon {
+            display: flex;
+            align-items: center;
         }
-
-        .file-info {
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            color: var(--gray-color);
+        
+        .file-icon svg {
+            margin-right: 12px;
+            color: var(--gray);
         }
-
-        .upload-form button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: var(--primary-color);
-            color: white;
+        
+        .file-name {
+            font-weight: 500;
+        }
+        
+        .file-size {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .file-date {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .file-actions button {
+            background: none;
             border: none;
-            border-radius: 4px;
-            font-size: 1rem;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            color: var(--gray);
+            transition: all 0.3s ease;
         }
-
-        .upload-form button:hover {
-            background-color: var(--secondary-color);
+        
+        .file-actions button:hover {
+            color: var(--primary);
         }
-
-        .status-message {
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 4px;
-            text-align: center;
+        
+        .file-actions button.delete:hover {
+            color: var(--danger);
         }
-
-        .status-message.success {
-            background-color: rgba(76, 175, 80, 0.1);
-            color: var(--success-color);
-        }
-
-        .status-message.error {
-            background-color: rgba(244, 67, 54, 0.1);
-            color: var(--danger-color);
-        }
-
-        .user-info {
-            display: none;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .user-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background-color: var(--accent-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .guest-buttons {
-            display: flex;
-            gap: 1rem;
-        }
-
-        footer {
-            background-color: var(--dark-color);
-            color: white;
-            text-align: center;
-            padding: 1.5rem;
-            margin-top: auto;
-        }
-
+        
         .empty-state {
             text-align: center;
-            padding: 3rem 0;
-            color: var(--gray-color);
+            padding: 40px 0;
+            color: var(--gray);
         }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
+        
+        .empty-state svg {
+            margin-bottom: 15px;
+            color: var(--gray);
         }
-
-        .empty-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
+        
+        .progress-bar {
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
         }
-
+        
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--dark);
+        }
+        
+        .close-modal {
+            border: none;
+            background: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #dee2e6;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #e5184f;
+        }
+        
         @media (max-width: 768px) {
-            main {
-                padding: 1rem;
+            .header-content {
+                flex-direction: column;
+                text-align: center;
             }
             
-            .container {
-                padding: 1rem;
+            .upload-container {
+                padding: 20px;
             }
             
-            th, td {
-                padding: 0.75rem 0.5rem;
+            .files-table th:nth-child(3),
+            .files-table td:nth-child(3) {
+                display: none;
             }
-            
-            .nav-links {
-                gap: 0.5rem;
-            }
-            
-            .nav-links button {
-                padding: 0.5rem;
-            }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            border-left: 4px solid var(--success);
+            border-radius: 4px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast svg {
+            margin-right: 10px;
+            color: var(--success);
+        }
+        
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+        
+        .toast.error svg {
+            color: var(--danger);
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <header>
-        <nav>
-            <div class="logo">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <span>FileShare</span>
-            </div>
-            <div class="nav-links">
-                <div class="user-info">
-                    <div class="user-icon"></div>
-                    <span class="username"></span>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <path d="M12 18v-6"></path>
+                        <path d="M9 15h6"></path>
+                    </svg>
+                    FileVault
                 </div>
-                <div class="guest-buttons">
-                    <button id="login-btn">Login</button>
-                    <button id="register-btn" class="highlight">Register</button>
-                </div>
-                <button id="upload-btn" style="display: none;">
-                    <i class="fas fa-upload"></i> Upload
-                </button>
-                <button id="logout-btn" style="display: none;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <p>Unlimited File Storage</p>
             </div>
-        </nav>
+        </div>
     </header>
 
-    <main>
-        <div class="container">
-            <h1>Share files permanently</h1>
-            <p>Upload and share files that will be stored forever with our permanent file sharing service.</p>
-            
-            <div class="search-container">
-                <input type="text" id="search-input" placeholder="Search by file name or username...">
-                <button id="search-btn">
-                    <i class="fas fa-search"></i>
-                </button>
+    <div class="container">
+        <div class="upload-section">
+            <h2>Upload Files</h2>
+            <div class="upload-container" id="dropArea">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <h3>Drag & Drop Files Here</h3>
+                <p>Or click to browse files</p>
+                <input type="file" id="fileInput" style="display: none;" multiple>
             </div>
             
-            <div class="table-container">
-                <table id="files-table">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Size</th>
-                            <th>Uploaded Date</th>
-                            <th>Username</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="files-tbody">
-                        <!-- Files will be loaded here -->
-                    </tbody>
-                </table>
-                
-                <div id="empty-state" class="empty-state">
-                    <i class="fas fa-file-upload"></i>
-                    <h3>No files yet</h3>
-                    <p>Upload your first file or sign in to view shared files</p>
-                </div>
+            <div class="input-group">
+                <label for="fileTitle">File Title</label>
+                <input type="text" id="fileTitle" placeholder="Enter a title for your file">
+            </div>
+            
+            <button class="btn" id="uploadBtn" disabled>Upload File</button>
+            
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
             </div>
         </div>
-    </main>
-
-    <div class="auth-container" id="auth-container">
-        <div class="auth-box">
-            <div class="auth-header">
-                <h2 id="auth-title">Login</h2>
-                <button class="close-btn" id="auth-close">&times;</button>
+        
+        <div class="files-section">
+            <h2>Your Files</h2>
+            <div class="search-bar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Search files by title...">
             </div>
-            <form class="auth-form" id="auth-form">
-                <input type="text" id="username" placeholder="Username" required>
-                <input type="password" id="password" placeholder="Password" required>
-                <button type="submit" id="auth-submit-btn">Login</button>
-            </form>
-            <div class="auth-toggle">
-                <span id="auth-toggle-text">Don't have an account?</span>
-                <a id="auth-toggle-link">Register</a>
+            
+            <table class="files-table">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Size</th>
+                        <th>Upload Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="filesList">
+                    <!-- Files will be added here dynamically -->
+                </tbody>
+            </table>
+            
+            <div class="empty-state" id="emptyState">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <h3>No files uploaded yet</h3>
+                <p>Your uploaded files will appear here</p>
             </div>
-            <div id="auth-message" class="status-message" style="display: none;"></div>
-        </div>
-    </div>
-
-    <div class="upload-container" id="upload-container">
-        <div class="upload-box">
-            <div class="upload-header">
-                <h2>Upload File</h2>
-                <button class="close-btn" id="upload-close">&times;</button>
-            </div>
-            <form class="upload-form" id="upload-form">
-                <input type="text" id="file-title" placeholder="File Title" required>
-                <div class="file-drop-area" id="file-drop-area">
-                    <i class="fas fa-cloud-upload-alt file-upload-icon"></i>
-                    <p>Drag & drop your file here or click to browse</p>
-                    <input type="file" id="file-input" style="display: none;" required>
-                </div>
-                <div class="file-info" id="file-info">
-                    No file selected
-                </div>
-                <button type="submit" id="upload-submit-btn">Upload File</button>
-            </form>
-            <div id="upload-message" class="status-message" style="display: none;"></div>
         </div>
     </div>
-
-    <footer>
-        <p>&copy; 2025 FileShare - Permanent File Sharing Service</p>
-    </footer>
+    
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this file? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelDelete">Cancel</button>
+                <button class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span id="toastMessage">File uploaded successfully!</span>
+    </div>
 
     <script>
-        // Discord Integration
-        class DiscordAuth {
-            constructor(channelId, botToken) {
-                this.channelId = channelId;
-                this.botToken = botToken;
-                this.baseUrl = 'https://discord.com/api/v9';
-            }
+        // Initialize IndexedDB
+        let db;
+        const request = window.indexedDB.open('FileVaultDB', 1);
+        
+        request.onerror = function(event) {
+            showToast('Error opening database', true);
+        };
+        
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
             
-            // Fetch all messages from the Discord channel
-            async fetchAllMessages() {
-                try {
-                    let messages = [];
-                    let lastMessageId = null;
-                    let hasMore = true;
-                    
-                    while (hasMore) {
-                        const url = `${this.baseUrl}/channels/${this.channelId}/messages` + 
-                                   (lastMessageId ? `?before=${lastMessageId}` : '');
-                        
-                        const response = await fetch(url, {
-                            headers: {
-                                'Authorization': `Bot ${this.botToken}`
-                            }
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`Failed to fetch messages: ${response.status}`);
-                        }
-                        
-                        const newMessages = await response.json();
-                        
-                        if (newMessages.length === 0) {
-                            hasMore = false;
-                        } else {
-                            messages = messages.concat(newMessages);
-                            lastMessageId = newMessages[newMessages.length - 1].id;
-                        }
-                    }
-                    
-                    return messages;
-                } catch (error) {
-                    console.error('Error fetching messages:', error);
-                    throw error;
-                }
-            }
+            // Create an object store for files
+            const objectStore = db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
             
-            // Find user credentials in messages
-            async findUserCredentials(username, password) {
-                try {
-                    const messages = await this.fetchAllMessages();
-                    const credentialPattern = /NEW_USER_REGISTERED:\s*([^:]+):([^\s]+)/;
-                    
-                    for (const message of messages) {
-                        const match = message.content.match(credentialPattern);
-                        if (match && match[1] === username && match[2] === password) {
-                            return true;
-                        }
-                    }
-                    
-                    return false;
-                } catch (error) {
-                    console.error('Error validating user:', error);
-                    throw error;
-                }
-            }
+            // Create indexes for searching
+            objectStore.createIndex('title', 'title', { unique: false });
+            objectStore.createIndex('name', 'name', { unique: false });
+            objectStore.createIndex('date', 'date', { unique: false });
+        };
+        
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadFiles();
+        };
+        
+        // DOM Elements
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileTitle = document.getElementById('fileTitle');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressBarFill = document.getElementById('progressBarFill');
+        const filesList = document.getElementById('filesList');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const deleteModal = document.getElementById('deleteModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelDelete = document.getElementById('cancelDelete');
+        const confirmDelete = document.getElementById('confirmDelete');
+        const toast = document.getElementById('toast');
+        
+        let currentFile = null;
+        let fileToDelete = null;
+        
+        // Event Listeners
+        dropArea.addEventListener('click', () => fileInput.click());
+        
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('highlight');
+        });
+        
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('highlight');
+        });
+        
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('highlight');
             
-            // Check if username exists
-            async usernameExists(username) {
-                try {
-                    const messages = await this.fetchAllMessages();
-                    const credentialPattern = /NEW_USER_REGISTERED:\s*([^:]+):([^\s]+)/;
-                    
-                    for (const message of messages) {
-                        const match = message.content.match(credentialPattern);
-                        if (match && match[1] === username) {
-                            return true;
-                        }
-                    }
-                    
-                    return false;
-                } catch (error) {
-                    console.error('Error checking username:', error);
-                    throw error;
-                }
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect();
             }
-            
-            // Register a new user by sending a message to Discord
-            async registerUser(username, password) {
-                try {
-                    // First check if username exists
-                    const exists = await this.usernameExists(username);
-                    if (exists) {
-                        throw new Error('Username already exists');
-                    }
-                    
-                    // Validate credentials
-                    if (username.length < 3) {
-                        throw new Error('Username must be at least 3 characters');
-                    }
-                    
-                    if (password.length < 6) {
-                        throw new Error('Password must be at least 6 characters');
-                    }
-                    
-                    // Send registration message to Discord
-                    const response = await fetch(`${this.baseUrl}/channels/${this.channelId}/messages`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bot ${this.botToken}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            content: `NEW_USER_REGISTERED: ${username}:${password}`
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('Failed to register user');
-                    }
-                    
-                    return true;
-                } catch (error) {
-                    console.error('Registration error:', error);
-                    throw error;
-                }
+        });
+        
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        fileTitle.addEventListener('input', () => {
+            uploadBtn.disabled = !fileTitle.value.trim() || !currentFile;
+        });
+        
+        uploadBtn.addEventListener('click', uploadFile);
+        
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            loadFiles(searchTerm);
+        });
+        
+        closeModal.addEventListener('click', () => {
+            deleteModal.style.display = 'none';
+        });
+        
+        cancelDelete.addEventListener('click', () => {
+            deleteModal.style.display = 'none';
+        });
+        
+        confirmDelete.addEventListener('click', () => {
+            if (fileToDelete !== null) {
+                deleteFile(fileToDelete);
+                deleteModal.style.display = 'none';
             }
-            
-            // Validate user credentials
-            async validateUser(username, password) {
-                try {
-                    const isValid = await this.findUserCredentials(username, password);
-                    if (!isValid) {
-                        throw new Error('Invalid username or password');
-                    }
-                    return { username };
-                } catch (error) {
-                    console.error('Login error:', error);
-                    throw error;
-                }
+        });
+        
+        // Functions
+        function handleFileSelect() {
+            if (fileInput.files.length > 0) {
+                currentFile = fileInput.files[0];
+                uploadBtn.disabled = !fileTitle.value.trim();
             }
         }
-
-        // Permanent Database Simulation (for files only)
-        class FileShareDatabase {
-            constructor() {
-                this.files = [
-                    {
-                        id: '1',
-                        title: 'Sample Document',
-                        filename: 'sample.pdf',
-                        size: 1024,
-                        type: 'application/pdf',
-                        uploadDate: new Date().toISOString(),
-                        username: 'demo',
-                        data: 'data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCBSPj4Kc3RyZWFtCkJUCjAgMCBUZAovRjEgMTAwIFRmCihIZWxsbyBXb3JsZCkgVGoKRVQKZW5kc3RyZWFtCmVuZG9iagoKMyAwIG9iagoxMDAKZW5kb2JqCgp0cmFpbGVyCjw8L1Jvb3QgMSAwIFI+PgplbmRvYmoKCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFI+PgplbmRvYmoKCnN0YXJ0eHJlZgo0NQolJUVPRgo='
-                    }
-                ];
-            }
+        
+        function uploadFile() {
+            if (!currentFile || !fileTitle.value.trim()) return;
             
-            // File methods
-            addFile(file) {
-                this.files.push(file);
-                return file;
-            }
+            // Show progress bar
+            progressBar.style.display = 'block';
+            progressBarFill.style.width = '0%';
             
-            getFiles() {
-                return [...this.files].sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
-            }
-            
-            searchFiles(query) {
-                query = query.toLowerCase();
-                return this.files.filter(file => 
-                    file.title.toLowerCase().includes(query) || 
-                    file.username.toLowerCase().includes(query)
-                );
-            }
-            
-            getFileById(id) {
-                return this.files.find(f => f.id === id);
-            }
-            
-            getUserFiles(username) {
-                return this.files.filter(f => f.username === username);
-            }
+            // Simulate progress (in a real application, you'd use XHR or fetch with progress event)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    progress = 100;
+                    saveFile();
+                }
+                progressBarFill.style.width = `${progress}%`;
+            }, 200);
         }
-
-        // App Controller
-        class FileShareApp {
-            constructor() {
-                // Replace with your actual Discord channel ID and bot token
-                this.discord = new DiscordAuth('1371360292251897931', 'MTM3MTM2MDY3OTY0NjMzNTA1Ng.G7Hq-m.LmzO1W-uIVYLM6Yvr5ntfIrCteTBxxgcxdm03k');
-                this.db = new FileShareDatabase();
-                this.currentUser = null;
+        
+        function saveFile() {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fileData = {
+                    title: fileTitle.value.trim(),
+                    name: currentFile.name,
+                    size: currentFile.size,
+                    type: currentFile.type,
+                    data: e.target.result,
+                    date: new Date().toISOString()
+                };
                 
-                // DOM Elements
-                this.loginBtn = document.getElementById('login-btn');
-                this.registerBtn = document.getElementById('register-btn');
-                this.uploadBtn = document.getElementById('upload-btn');
-                this.logoutBtn = document.getElementById('logout-btn');
-                this.authContainer = document.getElementById('auth-container');
-                this.authTitle = document.getElementById('auth-title');
-                this.authForm = document.getElementById('auth-form');
-                this.authSubmitBtn = document.getElementById('auth-submit-btn');
-                this.authClose = document.getElementById('auth-close');
-                this.authToggleText = document.getElementById('auth-toggle-text');
-                this.authToggleLink = document.getElementById('auth-toggle-link');
-                this.authMessage = document.getElementById('auth-message');
-                this.uploadContainer = document.getElementById('upload-container');
-                this.uploadClose = document.getElementById('upload-close');
-                this.uploadForm = document.getElementById('upload-form');
-                this.fileInput = document.getElementById('file-input');
-                this.fileDropArea = document.getElementById('file-drop-area');
-                this.fileInfo = document.getElementById('file-info');
-                this.uploadMessage = document.getElementById('upload-message');
-                this.searchInput = document.getElementById('search-input');
-                this.searchBtn = document.getElementById('search-btn');
-                this.filesTbody = document.getElementById('files-tbody');
-                this.emptyState = document.getElementById('empty-state');
-                this.userInfo = document.querySelector('.user-info');
-                this.userIcon = document.querySelector('.user-icon');
-                this.username = document.querySelector('.username');
-                this.guestButtons = document.querySelector('.guest-buttons');
+                const transaction = db.transaction(['files'], 'readwrite');
+                const objectStore = transaction.objectStore('files');
+                const request = objectStore.add(fileData);
                 
-                // Initialize
-                this.initEventListeners();
-                this.checkAuth();
-                this.loadFiles();
-            }
-            
-            // Helper methods
-            formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-            }
-            
-            formatDate(dateString) {
-                const date = new Date(dateString);
-                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-            }
-            
-            showToast(message, type) {
-                const toast = document.createElement('div');
-                toast.className = `status-message ${type}`;
-                toast.style.position = 'fixed';
-                toast.style.bottom = '20px';
-                toast.style.right = '20px';
-                toast.style.zIndex = '9999';
-                toast.style.minWidth = '250px';
-                toast.style.padding = '1rem';
-                toast.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
-                toast.textContent = message;
+                request.onsuccess = function() {
+                    showToast('File uploaded successfully!');
+                    resetUploadForm();
+                    loadFiles();
+                };
                 
-                document.body.appendChild(toast);
+                request.onerror = function() {
+                    console.log('Error', request.error);
+                    showToast('Error uploading file', true);
+                };
+            };
+            
+            reader.readAsDataURL(currentFile);
+        }
+        
+        function resetUploadForm() {
+            fileInput.value = '';
+            fileTitle.value = '';
+            currentFile = null;
+            uploadBtn.disabled = true;
+            progressBar.style.display = 'none';
+            progressBarFill.style.width = '0%';
+        }
+        
+        function loadFiles(searchTerm = '') {
+            const transaction = db.transaction(['files'], 'readonly');
+            const objectStore = transaction.objectStore('files');
+            const request = objectStore.getAll();
+            
+            request.onsuccess = function() {
+                const files = request.result;
+                filesList.innerHTML = '';
                 
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    toast.style.transition = 'opacity 0.5s ease';
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(toast);
-                    }, 500);
-                }, 3000);
-            }
-            
-            // Auth methods
-            checkAuth() {
-                if (this.currentUser) {
-                    this.userInfo.style.display = 'flex';
-                    this.uploadBtn.style.display = 'block';
-                    this.logoutBtn.style.display = 'block';
-                    this.guestButtons.style.display = 'none';
-                    this.userIcon.textContent = this.currentUser.username.charAt(0).toUpperCase();
-                    this.username.textContent = this.currentUser.username;
-                } else {
-                    this.userInfo.style.display = 'none';
-                    this.uploadBtn.style.display = 'none';
-                    this.logoutBtn.style.display = 'none';
-                    this.guestButtons.style.display = 'flex';
-                }
-            }
-            
-            showAuthModal(type) {
-                this.authContainer.style.display = 'flex';
-                
-                if (type === 'login') {
-                    this.authTitle.textContent = 'Login';
-                    this.authSubmitBtn.textContent = 'Login';
-                    this.authToggleText.textContent = "Don't have an account?";
-                    this.authToggleLink.textContent = 'Register';
-                } else {
-                    this.authTitle.textContent = 'Register';
-                    this.authSubmitBtn.textContent = 'Register';
-                    this.authToggleText.textContent = 'Already have an account?';
-                    this.authToggleLink.textContent = 'Login';
-                }
-                
-                this.authMessage.style.display = 'none';
-            }
-            
-            hideAuthModal() {
-                this.authContainer.style.display = 'none';
-                this.authForm.reset();
-            }
-            
-            showAuthMessage(message, type) {
-                this.authMessage.textContent = message;
-                this.authMessage.className = `status-message ${type}`;
-                this.authMessage.style.display = 'block';
-            }
-            
-            async registerUser(username, password) {
-                try {
-                    await this.discord.registerUser(username, password);
-                    
-                    // Create user session
-                    this.currentUser = { username };
-                    
-                    this.hideAuthModal();
-                    this.checkAuth();
-                    this.loadFiles();
-                    this.showToast('Registration successful!', 'success');
-                } catch (error) {
-                    this.showAuthMessage(error.message, 'error');
-                }
-            }
-            
-            async loginUser(username, password) {
-                try {
-                    const user = await this.discord.validateUser(username, password);
-                    
-                    this.currentUser = user;
-                    
-                    this.hideAuthModal();
-                    this.checkAuth();
-                    this.loadFiles();
-                    this.showToast('Login successful!', 'success');
-                } catch (error) {
-                    this.showAuthMessage(error.message, 'error');
-                }
-            }
-            
-            logoutUser() {
-                this.currentUser = null;
-                this.checkAuth();
-                this.loadFiles();
-                this.showToast('Logout successful!', 'success');
-            }
-            
-            // File methods
-            loadFiles(searchTerm = '') {
-                let filesToDisplay;
-                
-                if (searchTerm) {
-                    filesToDisplay = this.db.searchFiles(searchTerm);
-                } else {
-                    filesToDisplay = this.db.getFiles();
-                }
-                
-                if (filesToDisplay.length === 0) {
-                    this.filesTbody.innerHTML = '';
-                    this.emptyState.style.display = 'block';
+                if (files.length === 0) {
+                    emptyState.style.display = 'block';
+                    filesList.style.display = 'none';
                     return;
                 }
                 
-                this.emptyState.style.display = 'none';
-                this.filesTbody.innerHTML = '';
+                emptyState.style.display = 'none';
+                filesList.style.display = 'table-row-group';
                 
-                filesToDisplay.forEach(file => {
+                const filteredFiles = searchTerm 
+                    ? files.filter(file => 
+                        file.title.toLowerCase().includes(searchTerm) || 
+                        file.name.toLowerCase().includes(searchTerm))
+                    : files;
+                
+                filteredFiles.forEach(file => {
                     const row = document.createElement('tr');
                     
-                    const titleCell = document.createElement('td');
-                    titleCell.className = 'file-title';
-                    titleCell.textContent = file.title;
-                    titleCell.addEventListener('click', () => {
-                        if (!this.currentUser) {
-                            this.showAuthModal('login');
-                            return;
-                        }
-                        this.downloadFile(file);
-                    });
+                    // File name cell
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'file-icon';
                     
+                    // Choose icon based on file type
+                    let iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>`;
+                    
+                    if (file.type.startsWith('image/')) {
+                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>`;
+                    } else if (file.type.startsWith('video/')) {
+                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                            <line x1="7" y1="2" x2="7" y2="22"></line>
+                            <line x1="17" y1="2" x2="17" y2="22"></line>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <line x1="2" y1="7" x2="7" y2="7"></line>
+                            <line x1="2" y1="17" x2="7" y2="17"></line>
+                            <line x1="17" y1="17" x2="22" y2="17"></line>
+                            <line x1="17" y1="7" x2="22" y2="7"></line>
+                        </svg>`;
+                    } else if (file.type.startsWith('audio/')) {
+                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>`;
+                    } else if (file.type === 'application/pdf') {
+                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <path d="M9 13h6"></path>
+                            <path d="M9 17h6"></path>
+                            <path d="M9 9h1"></path>
+                        </svg>`;
+                    }
+                    
+                    nameCell.innerHTML = iconSvg;
+                    
+                    const fileInfo = document.createElement('div');
+                    fileInfo.innerHTML = `
+                        <div class="file-name">${file.title}</div>
+                        <div class="file-size">${file.name}</div>
+                    `;
+                    nameCell.appendChild(fileInfo);
+                    row.appendChild(nameCell);
+                    
+                    // File size cell
                     const sizeCell = document.createElement('td');
-                    sizeCell.className = 'file-size';
-                    sizeCell.textContent = this.formatFileSize(file.size);
-                    
-                    const dateCell = document.createElement('td');
-                    dateCell.className = 'file-date';
-                    dateCell.textContent = this.formatDate(file.uploadDate);
-                    
-                    const userCell = document.createElement('td');
-                    userCell.className = 'file-user';
-                    userCell.textContent = file.username;
-                    
-                    const actionCell = document.createElement('td');
-                    const downloadBtn = document.createElement('button');
-                    downloadBtn.className = 'action-btn';
-                    downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
-                    downloadBtn.addEventListener('click', () => {
-                        if (!this.currentUser) {
-                            this.showAuthModal('login');
-                            return;
-                        }
-                        this.downloadFile(file);
-                    });
-                    
-                    actionCell.appendChild(downloadBtn);
-                    
-                    row.appendChild(titleCell);
+                    sizeCell.textContent = formatFileSize(file.size);
                     row.appendChild(sizeCell);
+                    
+                    // Date cell
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = formatDate(file.date);
                     row.appendChild(dateCell);
-                    row.appendChild(userCell);
-                    row.appendChild(actionCell);
                     
-                    this.filesTbody.appendChild(row);
+                    // Actions cell
+                    const actionsCell = document.createElement('td');
+                    actionsCell.className = 'file-actions';
+                    
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>`;
+                    downloadBtn.title = 'Download';
+                    downloadBtn.onclick = () => downloadFile(file);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete';
+                    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>`;
+                    deleteBtn.title = 'Delete';
+                    deleteBtn.onclick = () => showDeleteModal(file.id);
+                    
+                    actionsCell.appendChild(downloadBtn);
+                    actionsCell.appendChild(deleteBtn);
+                    row.appendChild(actionsCell);
+                    
+                    filesList.appendChild(row);
                 });
-            }
+            };
             
-            showUploadModal() {
-                if (!this.currentUser) {
-                    this.showAuthModal('login');
-                    return;
-                }
-                this.uploadContainer.style.display = 'flex';
-                this.uploadMessage.style.display = 'none';
-                this.fileInfo.textContent = 'No file selected';
-            }
-            
-            hideUploadModal() {
-                this.uploadContainer.style.display = 'none';
-                this.uploadForm.reset();
-            }
-            
-            showUploadMessage(message, type) {
-                this.uploadMessage.textContent = message;
-                this.uploadMessage.className = `status-message ${type}`;
-                this.uploadMessage.style.display = 'block';
-            }
-            
-            async uploadFile(title, file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    
-                    reader.onload = (e) => {
-                        const newFile = {
-                            id: Date.now().toString(),
-                            title: title,
-                            filename: file.name,
-                            size: file.size,
-                            type: file.type,
-                            uploadDate: new Date().toISOString(),
-                            username: this.currentUser.username,
-                            data: e.target.result
-                        };
-                        
-                        this.db.addFile(newFile);
-                        resolve(newFile);
-                    };
-                    
-                    reader.onerror = () => {
-                        reject(new Error('File reading failed'));
-                    };
-                    
-                    reader.readAsDataURL(file);
-                });
-            }
-            
-            downloadFile(file) {
-                const link = document.createElement('a');
-                link.href = file.data;
-                link.download = file.filename || file.title;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-            
-            // Event listeners
-            initEventListeners() {
-                // Auth buttons
-                this.loginBtn.addEventListener('click', () => this.showAuthModal('login'));
-                this.registerBtn.addEventListener('click', () => this.showAuthModal('register'));
-                this.uploadBtn.addEventListener('click', () => this.showUploadModal());
-                this.logoutBtn.addEventListener('click', () => this.logoutUser());
-                
-                // Modal close buttons
-                this.authClose.addEventListener('click', () => this.hideAuthModal());
-                this.uploadClose.addEventListener('click', () => this.hideUploadModal());
-                
-                // Toggle between login/register
-                this.authToggleLink.addEventListener('click', () => {
-                    if (this.authTitle.textContent === 'Login') {
-                        this.showAuthModal('register');
-                    } else {
-                        this.showAuthModal('login');
-                    }
-                });
-                
-                // Auth form submission
-                this.authForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    
-                    const username = document.getElementById('username').value.trim();
-                    const password = document.getElementById('password').value;
-                    
-                    if (username === '' || password === '') {
-                        this.showAuthMessage('Please fill in all fields', 'error');
-                        return;
-                    }
-                    
-                    if (this.authTitle.textContent === 'Login') {
-                        await this.loginUser(username, password);
-                    } else {
-                        await this.registerUser(username, password);
-                    }
-                });
-                
-                // File drop area
-                this.fileDropArea.addEventListener('click', () => {
-                    this.fileInput.click();
-                });
-                
-                this.fileInput.addEventListener('change', () => {
-                    if (this.fileInput.files.length > 0) {
-                        const file = this.fileInput.files[0];
-                        this.fileInfo.textContent = `Selected: ${file.name} (${this.formatFileSize(file.size)})`;
-                    } else {
-                        this.fileInfo.textContent = 'No file selected';
-                    }
-                });
-                
-                // Drag and drop
-                this.fileDropArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    this.fileDropArea.classList.add('active');
-                });
-                
-                this.fileDropArea.addEventListener('dragleave', () => {
-                    this.fileDropArea.classList.remove('active');
-                });
-                
-                this.fileDropArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    this.fileDropArea.classList.remove('active');
-                    
-                    if (e.dataTransfer.files.length > 0) {
-                        this.fileInput.files = e.dataTransfer.files;
-                        const file = e.dataTransfer.files[0];
-                        this.fileInfo.textContent = `Selected: ${file.name} (${this.formatFileSize(file.size)})`;
-                    }
-                });
-                
-                // Upload form
-                this.uploadForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    
-                    if (!this.currentUser) {
-                        this.showUploadMessage('Please login to upload files', 'error');
-                        return;
-                    }
-                    
-                    const title = document.getElementById('file-title').value.trim();
-                    const file = this.fileInput.files[0];
-                    
-                    if (!title || !file) {
-                        this.showUploadMessage('Please provide a title and select a file', 'error');
-                        return;
-                    }
-                    
-                    try {
-                        this.showUploadMessage('Uploading file...', 'success');
-                        await this.uploadFile(title, file);
-                        
-                        this.showUploadMessage('File uploaded successfully!', 'success');
-                        this.loadFiles();
-                        
-                        setTimeout(() => {
-                            this.hideUploadModal();
-                        }, 1500);
-                    } catch (error) {
-                        this.showUploadMessage('Failed to upload file: ' + error.message, 'error');
-                        console.error('Upload error:', error);
-                    }
-                });
-                
-                // Search functionality
-                this.searchBtn.addEventListener('click', () => {
-                    const searchTerm = this.searchInput.value.trim();
-                    this.loadFiles(searchTerm);
-                });
-                
-                this.searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        const searchTerm = this.searchInput.value.trim();
-                        this.loadFiles(searchTerm);
-                    }
-                });
-            }
+            request.onerror = function() {
+                showToast('Error loading files', true);
+            };
         }
-
-        // Initialize the app when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            new FileShareApp();
-        });
+        
+        function downloadFile(file) {
+            const link = document.createElement('a');
+            link.href = file.data;
+            link.download = file.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function showDeleteModal(fileId) {
+            fileToDelete = fileId;
+            deleteModal.style.display = 'flex';
+        }
+        
+        function deleteFile(fileId) {
+            const transaction = db.transaction(['files'], 'readwrite');
+            const objectStore = transaction.objectStore('files');
+            const request = objectStore.delete(fileId);
+            
+            request.onsuccess = function() {
+                showToast('File deleted successfully!');
+                loadFiles();
+            };
+            
+            request.onerror = function() {
+                showToast('Error deleting file', true);
+            };
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+        
+        function showToast(message, isError = false) {
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            
+            if (isError) {
+                toast.classList.add('error');
+            } else {
+                toast.classList.remove('error');
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
     </script>
 </body>
 </html>
