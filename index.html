@@ -471,6 +471,87 @@
             font-size: 14px;
         }
         
+        /* Login Modal Styles */
+        .login-modal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-content {
+            background-color: var(--dark);
+            border-radius: 8px;
+            padding: 30px;
+            width: 400px;
+            max-width: 90%;
+            border: 1px solid var(--border);
+        }
+        
+        .login-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .login-header h3 {
+            margin: 0;
+            color: var(--light);
+        }
+        
+        .login-body {
+            margin-bottom: 20px;
+        }
+        
+        .login-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* Admin Section Styles */
+        .admin-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+        
+        .admin-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--dark);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        
+        .admin-greeting {
+            font-weight: 500;
+        }
+        
+        .logout-btn {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background-color: #dc2626;
+        }
+        
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -496,6 +577,29 @@
     </style>
 </head>
 <body>
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-content">
+            <div class="login-header">
+                <h3>Admin Login</h3>
+            </div>
+            <div class="login-body">
+                <div class="input-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter your username">
+                </div>
+                <div class="input-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password">
+                </div>
+                <div id="loginError" style="color: var(--danger); margin-top: 10px; display: none;">Invalid username or password</div>
+            </div>
+            <div class="login-footer">
+                <button class="btn" id="loginBtn">Login</button>
+            </div>
+        </div>
+    </div>
+    
     <header>
         <div class="container">
             <div class="header-content">
@@ -511,6 +615,14 @@
     </header>
 
     <div class="container">
+        <!-- Admin Section (shown after login) -->
+        <div class="admin-section" id="adminSection">
+            <div class="admin-info">
+                <div class="admin-greeting">Welcome, Admin</div>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+        
         <div class="upload-section">
             <h2>Upload File Anonymously</h2>
             <div class="upload-container" id="dropArea">
@@ -618,7 +730,6 @@
         <span id="toastMessage">File shared successfully!</span>
     </div>
 
-    <!-- The JavaScript remains exactly the same as in your original code -->
     <script>
         // Initialize IndexedDB
         let db;
@@ -642,7 +753,7 @@
         
         request.onsuccess = function(event) {
             db = event.target.result;
-            loadFiles();
+            checkLoginStatus();
         };
         
         // DOM Elements
@@ -668,9 +779,19 @@
         const previewFileSize = document.getElementById('previewFileSize');
         const removeFile = document.getElementById('removeFile');
         
+        // Login elements
+        const loginModal = document.getElementById('loginModal');
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const adminSection = document.getElementById('adminSection');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
         let currentFile = null;
         let fileToDelete = null;
         let uploadInProgress = false;
+        let isLoggedIn = false;
         
         // Event Listeners
         dropArea.addEventListener('click', () => fileInput.click());
@@ -726,7 +847,60 @@
             resetUploadForm();
         });
         
+        // Login event listeners
+        loginBtn.addEventListener('click', handleLogin);
+        logoutBtn.addEventListener('click', handleLogout);
+        
+        // Check if Enter key is pressed in login form
+        loginPassword.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+        
         // Functions
+        function checkLoginStatus() {
+            const loggedIn = localStorage.getItem('shadowShareLoggedIn') === 'true';
+            if (loggedIn) {
+                isLoggedIn = true;
+                adminSection.style.display = 'block';
+                loginModal.style.display = 'none';
+                loadFiles();
+            } else {
+                loginModal.style.display = 'flex';
+            }
+        }
+        
+        function handleLogin() {
+            const username = loginUsername.value.trim();
+            const password = loginPassword.value.trim();
+            
+            // Check credentials (admin/admin123)
+            if (username === 'admin' && password === 'admin123') {
+                // Successful login
+                isLoggedIn = true;
+                localStorage.setItem('shadowShareLoggedIn', 'true');
+                loginModal.style.display = 'none';
+                adminSection.style.display = 'block';
+                loginError.style.display = 'none';
+                loadFiles();
+            } else {
+                // Failed login
+                loginError.style.display = 'block';
+                loginPassword.value = '';
+            }
+        }
+        
+        function handleLogout() {
+            isLoggedIn = false;
+            localStorage.removeItem('shadowShareLoggedIn');
+            adminSection.style.display = 'none';
+            loginModal.style.display = 'flex';
+            loginUsername.value = '';
+            loginPassword.value = '';
+            loginError.style.display = 'none';
+        }
+        
         function handleFileSelect() {
             if (fileInput.files.length > 0) {
                 currentFile = fileInput.files[0];
