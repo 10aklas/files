@@ -3,41 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileVault - Simple File Storage</title>
+    <title>FileVault - Unlimited File Storage</title>
     <style>
         :root {
             --primary: #4361ee;
             --dark: #3a0ca3;
             --light: #f8f9fa;
             --gray: #6c757d;
+            --success: #4cc9f0;
+            --danger: #f72585;
             --border: #dee2e6;
-            --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
             background-color: var(--light);
             color: #333;
-            line-height: 1.5;
+            line-height: 1.6;
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 20px;
         }
         
         header {
             background-color: white;
-            padding: 15px 0;
+            padding: 20px 0;
             box-shadow: var(--shadow);
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         
         .header-content {
@@ -47,38 +49,38 @@
         }
         
         .logo {
-            font-size: 22px;
-            font-weight: bold;
+            font-size: 24px;
+            font-weight: 700;
             color: var(--primary);
             display: flex;
             align-items: center;
         }
         
         .logo svg {
-            margin-right: 8px;
+            margin-right: 10px;
         }
         
-        .section {
+        .upload-section {
             background-color: white;
-            border-radius: 6px;
-            padding: 20px;
+            border-radius: 8px;
+            padding: 30px;
             box-shadow: var(--shadow);
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         
         h2 {
             color: var(--dark);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .upload-container {
             border: 2px dashed var(--border);
-            border-radius: 6px;
-            padding: 30px;
+            border-radius: 8px;
+            padding: 40px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .upload-container:hover {
@@ -88,34 +90,51 @@
         
         .upload-container svg {
             color: var(--primary);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-container p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .upload-container.highlight {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
         }
         
         .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .input-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 500;
         }
         
         .input-group input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid var(--border);
             border-radius: 4px;
             font-size: 16px;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
         }
         
         .btn {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 4px;
             font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -131,12 +150,12 @@
         
         .search-bar {
             position: relative;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .search-bar input {
             width: 100%;
-            padding: 10px 10px 10px 35px;
+            padding: 12px 16px 12px 40px;
             border: 1px solid var(--border);
             border-radius: 4px;
             font-size: 16px;
@@ -144,10 +163,17 @@
         
         .search-bar svg {
             position: absolute;
-            left: 10px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--gray);
+        }
+        
+        .files-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: var(--shadow);
         }
         
         .files-table {
@@ -157,15 +183,23 @@
         
         .files-table th {
             text-align: left;
-            padding: 10px;
-            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            border-bottom: 2px solid var(--border);
             color: var(--gray);
             font-weight: 600;
         }
         
         .files-table td {
-            padding: 10px;
+            padding: 16px;
             border-bottom: 1px solid var(--border);
+        }
+        
+        .files-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .files-table tr:hover {
+            background-color: rgba(67, 97, 238, 0.05);
         }
         
         .file-icon {
@@ -174,7 +208,7 @@
         }
         
         .file-icon svg {
-            margin-right: 10px;
+            margin-right: 12px;
             color: var(--gray);
         }
         
@@ -183,6 +217,11 @@
         }
         
         .file-size {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .file-date {
             color: var(--gray);
             font-size: 14px;
         }
@@ -205,13 +244,118 @@
         }
         
         .file-actions button.delete:hover {
-            color: #f72585;
+            color: var(--danger);
         }
         
         .empty-state {
             text-align: center;
-            padding: 30px 0;
+            padding: 40px 0;
             color: var(--gray);
+        }
+        
+        .empty-state svg {
+            margin-bottom: 15px;
+            color: var(--gray);
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--dark);
+        }
+        
+        .close-modal {
+            border: none;
+            background: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #dee2e6;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #e5184f;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .upload-container {
+                padding: 20px;
+            }
+            
+            .files-table th:nth-child(3),
+            .files-table td:nth-child(3) {
+                display: none;
+            }
         }
         
         .toast {
@@ -219,9 +363,9 @@
             bottom: 20px;
             right: 20px;
             background-color: white;
-            border-left: 4px solid #4cc9f0;
+            border-left: 4px solid var(--success);
             border-radius: 4px;
-            padding: 15px;
+            padding: 16px 20px;
             box-shadow: var(--shadow);
             display: flex;
             align-items: center;
@@ -236,22 +380,15 @@
         
         .toast svg {
             margin-right: 10px;
-            color: #4cc9f0;
+            color: var(--success);
         }
         
         .toast.error {
-            border-left-color: #f72585;
+            border-left-color: var(--danger);
         }
         
         .toast.error svg {
-            color: #f72585;
-        }
-        
-        @media (max-width: 768px) {
-            .files-table th:nth-child(2),
-            .files-table td:nth-child(2) {
-                display: none;
-            }
+            color: var(--danger);
         }
     </style>
 </head>
@@ -261,28 +398,29 @@
             <div class="header-content">
                 <div class="logo">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
-                        <path d="M14 3v5h5"></path>
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
                         <path d="M12 18v-6"></path>
                         <path d="M9 15h6"></path>
                     </svg>
                     FileVault
                 </div>
-                <p>Simple File Storage</p>
+                <p>Unlimited File Storage</p>
             </div>
         </div>
     </header>
 
     <div class="container">
-        <div class="section">
+        <div class="upload-section">
             <h2>Upload Files</h2>
             <div class="upload-container" id="dropArea">
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                <h3>Drag Files Here or Click to Browse</h3>
+                <h3>Drag & Drop Files Here</h3>
+                <p>Or click to browse files</p>
                 <input type="file" id="fileInput" style="display: none;" multiple>
             </div>
             
@@ -291,17 +429,21 @@
                 <input type="text" id="fileTitle" placeholder="Enter a title for your file">
             </div>
             
-            <button class="btn" id="uploadBtn" disabled>Upload</button>
+            <button class="btn" id="uploadBtn" disabled>Upload File</button>
+            
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
         </div>
         
-        <div class="section">
+        <div class="files-section">
             <h2>Your Files</h2>
             <div class="search-bar">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Search files...">
+                <input type="text" id="searchInput" placeholder="Search files by title...">
             </div>
             
             <table class="files-table">
@@ -309,6 +451,7 @@
                     <tr>
                         <th>File Name</th>
                         <th>Size</th>
+                        <th>Upload Date</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -318,18 +461,34 @@
             </table>
             
             <div class="empty-state" id="emptyState">
-                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
-                    <path d="M14 3v5h5"></path>
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
                 </svg>
                 <h3>No files uploaded yet</h3>
-                <p>Files you upload will appear here</p>
+                <p>Your uploaded files will appear here</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this file? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelDelete">Cancel</button>
+                <button class="btn btn-danger" id="confirmDelete">Delete</button>
             </div>
         </div>
     </div>
     
     <div class="toast" id="toast">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
@@ -341,15 +500,20 @@
         let db;
         const request = window.indexedDB.open('FileVaultDB', 1);
         
-        request.onerror = function() {
+        request.onerror = function(event) {
             showToast('Error opening database', true);
         };
         
         request.onupgradeneeded = function(event) {
             db = event.target.result;
+            
+            // Create an object store for files
             const objectStore = db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+            
+            // Create indexes for searching
             objectStore.createIndex('title', 'title', { unique: false });
             objectStore.createIndex('name', 'name', { unique: false });
+            objectStore.createIndex('date', 'date', { unique: false });
         };
         
         request.onsuccess = function(event) {
@@ -362,31 +526,35 @@
         const fileInput = document.getElementById('fileInput');
         const fileTitle = document.getElementById('fileTitle');
         const uploadBtn = document.getElementById('uploadBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressBarFill = document.getElementById('progressBarFill');
         const filesList = document.getElementById('filesList');
         const emptyState = document.getElementById('emptyState');
         const searchInput = document.getElementById('searchInput');
+        const deleteModal = document.getElementById('deleteModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelDelete = document.getElementById('cancelDelete');
+        const confirmDelete = document.getElementById('confirmDelete');
         const toast = document.getElementById('toast');
         
         let currentFile = null;
+        let fileToDelete = null;
         
         // Event Listeners
         dropArea.addEventListener('click', () => fileInput.click());
         
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropArea.style.backgroundColor = 'rgba(67, 97, 238, 0.05)';
-            dropArea.style.borderColor = '#4361ee';
+            dropArea.classList.add('highlight');
         });
         
         dropArea.addEventListener('dragleave', () => {
-            dropArea.style.backgroundColor = '';
-            dropArea.style.borderColor = '';
+            dropArea.classList.remove('highlight');
         });
         
         dropArea.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropArea.style.backgroundColor = '';
-            dropArea.style.borderColor = '';
+            dropArea.classList.remove('highlight');
             
             if (e.dataTransfer.files.length > 0) {
                 fileInput.files = e.dataTransfer.files;
@@ -403,7 +571,23 @@
         uploadBtn.addEventListener('click', uploadFile);
         
         searchInput.addEventListener('input', () => {
-            loadFiles(searchInput.value.toLowerCase());
+            const searchTerm = searchInput.value.toLowerCase();
+            loadFiles(searchTerm);
+        });
+        
+        closeModal.addEventListener('click', () => {
+            deleteModal.style.display = 'none';
+        });
+        
+        cancelDelete.addEventListener('click', () => {
+            deleteModal.style.display = 'none';
+        });
+        
+        confirmDelete.addEventListener('click', () => {
+            if (fileToDelete !== null) {
+                deleteFile(fileToDelete);
+                deleteModal.style.display = 'none';
+            }
         });
         
         // Functions
@@ -417,6 +601,24 @@
         function uploadFile() {
             if (!currentFile || !fileTitle.value.trim()) return;
             
+            // Show progress bar
+            progressBar.style.display = 'block';
+            progressBarFill.style.width = '0%';
+            
+            // Simulate progress (in a real application, you'd use XHR or fetch with progress event)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    progress = 100;
+                    saveFile();
+                }
+                progressBarFill.style.width = `${progress}%`;
+            }, 200);
+        }
+        
+        function saveFile() {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const fileData = {
@@ -439,6 +641,7 @@
                 };
                 
                 request.onerror = function() {
+                    console.log('Error', request.error);
                     showToast('Error uploading file', true);
                 };
             };
@@ -451,6 +654,8 @@
             fileTitle.value = '';
             currentFile = null;
             uploadBtn.disabled = true;
+            progressBar.style.display = 'none';
+            progressBarFill.style.width = '0%';
         }
         
         function loadFiles(searchTerm = '') {
@@ -464,10 +669,12 @@
                 
                 if (files.length === 0) {
                     emptyState.style.display = 'block';
+                    filesList.style.display = 'none';
                     return;
                 }
                 
                 emptyState.style.display = 'none';
+                filesList.style.display = 'table-row-group';
                 
                 const filteredFiles = searchTerm 
                     ? files.filter(file => 
@@ -482,11 +689,44 @@
                     const nameCell = document.createElement('td');
                     nameCell.className = 'file-icon';
                     
-                    // Simple icon for all files
-                    let iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
-                        <path d="M14 3v5h5"></path>
+                    // Choose icon based on file type
+                    let iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
                     </svg>`;
+                    
+                    if (file.type.startsWith('image/')) {
+                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>`;
+                    } else if (file.type.startsWith('video/')) {
+                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                            <line x1="7" y1="2" x2="7" y2="22"></line>
+                            <line x1="17" y1="2" x2="17" y2="22"></line>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <line x1="2" y1="7" x2="7" y2="7"></line>
+                            <line x1="2" y1="17" x2="7" y2="17"></line>
+                            <line x1="17" y1="17" x2="22" y2="17"></line>
+                            <line x1="17" y1="7" x2="22" y2="7"></line>
+                        </svg>`;
+                    } else if (file.type.startsWith('audio/')) {
+                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
+                        </svg>`;
+                    } else if (file.type === 'application/pdf') {
+                        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <path d="M9 13h6"></path>
+                            <path d="M9 17h6"></path>
+                            <path d="M9 9h1"></path>
+                        </svg>`;
+                    }
                     
                     nameCell.innerHTML = iconSvg;
                     
@@ -503,12 +743,17 @@
                     sizeCell.textContent = formatFileSize(file.size);
                     row.appendChild(sizeCell);
                     
+                    // Date cell
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = formatDate(file.date);
+                    row.appendChild(dateCell);
+                    
                     // Actions cell
                     const actionsCell = document.createElement('td');
                     actionsCell.className = 'file-actions';
                     
                     const downloadBtn = document.createElement('button');
-                    downloadBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    downloadBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -518,14 +763,14 @@
                     
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'delete';
-                    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         <line x1="10" y1="11" x2="10" y2="17"></line>
                         <line x1="14" y1="11" x2="14" y2="17"></line>
                     </svg>`;
                     deleteBtn.title = 'Delete';
-                    deleteBtn.onclick = () => deleteFile(file.id);
+                    deleteBtn.onclick = () => showDeleteModal(file.id);
                     
                     actionsCell.appendChild(downloadBtn);
                     actionsCell.appendChild(deleteBtn);
@@ -549,31 +794,39 @@
             document.body.removeChild(link);
         }
         
+        function showDeleteModal(fileId) {
+            fileToDelete = fileId;
+            deleteModal.style.display = 'flex';
+        }
+        
         function deleteFile(fileId) {
-            if (confirm('Are you sure you want to delete this file?')) {
-                const transaction = db.transaction(['files'], 'readwrite');
-                const objectStore = transaction.objectStore('files');
-                const request = objectStore.delete(fileId);
-                
-                request.onsuccess = function() {
-                    showToast('File deleted successfully!');
-                    loadFiles();
-                };
-                
-                request.onerror = function() {
-                    showToast('Error deleting file', true);
-                };
-            }
+            const transaction = db.transaction(['files'], 'readwrite');
+            const objectStore = transaction.objectStore('files');
+            const request = objectStore.delete(fileId);
+            
+            request.onsuccess = function() {
+                showToast('File deleted successfully!');
+                loadFiles();
+            };
+            
+            request.onerror = function() {
+                showToast('Error deleting file', true);
+            };
         }
         
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
             
             const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
         }
         
         function showToast(message, isError = false) {
