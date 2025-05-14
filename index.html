@@ -72,6 +72,11 @@
             background-color: #0085e0;
         }
         
+        button:disabled {
+            background-color: #b2dffc;
+            cursor: not-allowed;
+        }
+        
         .result {
             margin-top: 24px;
             padding: 16px;
@@ -95,6 +100,12 @@
             background-color: #eff5fb;
             color: #296fa8;
             border: 1px solid #3298dc;
+        }
+        
+        .error {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
         }
         
         .loader {
@@ -168,12 +179,49 @@
             border-radius: 4px;
             font-size: 14px;
         }
+        
+        .settings-toggle {
+            margin-top: 16px;
+            color: #0095f6;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .advanced-settings {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+        
+        .proxy-settings {
+            margin-top: 8px;
+        }
+        
+        .info-text {
+            font-size: 13px;
+            color: #737373;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">📸</div>
-        <h1>Fast Instagram Username Checker</h1>
+        <h1>Real Instagram Username Checker</h1>
         <p>Check if an Instagram username is available</p>
         
         <div class="webhook-settings">
@@ -194,6 +242,27 @@
             <button id="check-batch-btn">Check All</button>
             <div class="results-list" id="batch-results"></div>
         </div>
+        
+        <div class="settings-toggle" id="toggle-settings">Show Advanced Settings</div>
+        
+        <div class="advanced-settings" id="advanced-settings">
+            <div class="checkbox-group">
+                <input type="checkbox" id="use-delay" checked />
+                <label for="use-delay">Add delay between checks (recommended)</label>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="use-proxy" />
+                <label for="use-proxy">Use proxy server</label>
+            </div>
+            
+            <div class="proxy-settings" id="proxy-settings" style="display: none;">
+                <input type="text" id="proxy-url" placeholder="Proxy URL (e.g., https://your-proxy-server.com)" />
+                <p class="info-text">Using a proxy can help avoid rate limiting</p>
+            </div>
+            
+            <p class="info-text">Note: Too many requests in a short time may result in temporary IP blocking by Instagram.</p>
+        </div>
     </div>
 
     <script>
@@ -205,18 +274,17 @@
             const webhookUrlInput = document.getElementById('webhook-url');
             const resultDiv = document.getElementById('result');
             const batchResultsDiv = document.getElementById('batch-results');
+            const toggleSettingsBtn = document.getElementById('toggle-settings');
+            const advancedSettingsDiv = document.getElementById('advanced-settings');
+            const useProxyCheckbox = document.getElementById('use-proxy');
+            const proxySettingsDiv = document.getElementById('proxy-settings');
+            const proxyUrlInput = document.getElementById('proxy-url');
+            const useDelayCheckbox = document.getElementById('use-delay');
             
-            // Load webhook URL from localStorage if it exists
-            const savedWebhookUrl = localStorage.getItem('instagramCheckerWebhookUrl');
-            if (savedWebhookUrl) {
-                webhookUrlInput.value = savedWebhookUrl;
-            }
+            // Load saved settings from localStorage
+            loadSavedSettings();
             
-            // Save webhook URL when it changes
-            webhookUrlInput.addEventListener('change', function() {
-                localStorage.setItem('instagramCheckerWebhookUrl', webhookUrlInput.value);
-            });
-            
+            // Event listeners
             checkBtn.addEventListener('click', checkSingleUsername);
             checkBatchBtn.addEventListener('click', checkBatchUsernames);
             
@@ -225,6 +293,56 @@
                     checkSingleUsername();
                 }
             });
+            
+            toggleSettingsBtn.addEventListener('click', function() {
+                if (advancedSettingsDiv.style.display === 'none' || !advancedSettingsDiv.style.display) {
+                    advancedSettingsDiv.style.display = 'block';
+                    toggleSettingsBtn.textContent = 'Hide Advanced Settings';
+                } else {
+                    advancedSettingsDiv.style.display = 'none';
+                    toggleSettingsBtn.textContent = 'Show Advanced Settings';
+                }
+            });
+            
+            useProxyCheckbox.addEventListener('change', function() {
+                proxySettingsDiv.style.display = this.checked ? 'block' : 'none';
+                saveSettings();
+            });
+            
+            useDelayCheckbox.addEventListener('change', saveSettings);
+            proxyUrlInput.addEventListener('change', saveSettings);
+            webhookUrlInput.addEventListener('change', saveSettings);
+            
+            function loadSavedSettings() {
+                const savedWebhookUrl = localStorage.getItem('instagramCheckerWebhookUrl');
+                const savedUseDelay = localStorage.getItem('instagramCheckerUseDelay');
+                const savedUseProxy = localStorage.getItem('instagramCheckerUseProxy');
+                const savedProxyUrl = localStorage.getItem('instagramCheckerProxyUrl');
+                
+                if (savedWebhookUrl) {
+                    webhookUrlInput.value = savedWebhookUrl;
+                }
+                
+                if (savedUseDelay !== null) {
+                    useDelayCheckbox.checked = savedUseDelay === 'true';
+                }
+                
+                if (savedUseProxy !== null) {
+                    useProxyCheckbox.checked = savedUseProxy === 'true';
+                    proxySettingsDiv.style.display = useProxyCheckbox.checked ? 'block' : 'none';
+                }
+                
+                if (savedProxyUrl) {
+                    proxyUrlInput.value = savedProxyUrl;
+                }
+            }
+            
+            function saveSettings() {
+                localStorage.setItem('instagramCheckerWebhookUrl', webhookUrlInput.value);
+                localStorage.setItem('instagramCheckerUseDelay', useDelayCheckbox.checked);
+                localStorage.setItem('instagramCheckerUseProxy', useProxyCheckbox.checked);
+                localStorage.setItem('instagramCheckerProxyUrl', proxyUrlInput.value);
+            }
             
             function checkSingleUsername() {
                 const username = usernameInput.value.trim();
@@ -244,8 +362,14 @@
                 // Show loading status
                 showResult(`<span class="loader"></span> Checking @${username}...`, 'loading');
                 
-                // Check username faster (reduced delay)
-                checkUsernameAvailability(username, webhookUrl);
+                // Disable the button while checking
+                checkBtn.disabled = true;
+                
+                // Check username
+                checkUsernameAvailability(username, webhookUrl, function() {
+                    // Re-enable the button
+                    checkBtn.disabled = false;
+                });
             }
             
             function checkBatchUsernames() {
@@ -264,9 +388,17 @@
                 // Clear previous results
                 batchResultsDiv.innerHTML = '';
                 
-                // Process each username
+                // Disable the button while checking
+                checkBatchBtn.disabled = true;
+                
+                // Process each username with appropriate delay
+                let completedChecks = 0;
+                const useDelay = useDelayCheckbox.checked;
+                
                 usernames.forEach((username, index) => {
-                    // Add a small delay between checks to prevent rate limiting
+                    // Calculate delay based on settings
+                    const delay = useDelay ? 1000 + (index * 1500) : 100 + (index * 200);
+                    
                     setTimeout(() => {
                         const resultItem = document.createElement('div');
                         resultItem.className = 'result-item loading';
@@ -275,77 +407,180 @@
                         batchResultsDiv.appendChild(resultItem);
                         
                         // Check this username
-                        checkBatchUsernameAvailability(username, webhookUrl, index);
-                    }, index * 100); // Stagger checks by 100ms each
+                        checkBatchUsernameAvailability(username, webhookUrl, index, function() {
+                            completedChecks++;
+                            
+                            // Re-enable button when all checks are complete
+                            if (completedChecks === usernames.length) {
+                                checkBatchBtn.disabled = false;
+                            }
+                        });
+                    }, delay);
                 });
             }
             
-            function checkUsernameAvailability(username, webhookUrl) {
-                // Fast checking with reduced delay
-                // In a real implementation, you would send a request to a backend service
+            function checkUsernameAvailability(username, webhookUrl, callback) {
+                const useProxy = useProxyCheckbox.checked;
+                const proxyUrl = proxyUrlInput.value.trim();
                 
-                // Using a much shorter timeout for faster response
-                setTimeout(() => {
-                    // Simulate a result based on username characteristics for demo
-                    // This gives more realistic-feeling results while still being fast
-                    let isAvailable;
-                    
-                    // Common usernames are less likely to be available
-                    const commonUsernames = ['john', 'jane', 'admin', 'instagram', 'photo', 'user', 'me', 'you', 'we', 'they'];
-                    if (username.length <= 4 || commonUsernames.includes(username.toLowerCase())) {
-                        isAvailable = Math.random() > 0.9; // 10% chance of being available
-                    } else if (username.length <= 6) {
-                        isAvailable = Math.random() > 0.7; // 30% chance of being available
-                    } else {
-                        isAvailable = Math.random() > 0.4; // 60% chance of being available
-                    }
-                    
-                    if (isAvailable) {
-                        showResult(`Username @${username} is available!`, 'available');
-                        
-                        // Send to Discord webhook if URL is provided
-                        if (webhookUrl) {
-                            sendToDiscordWebhook(username, webhookUrl);
+                // Create API url
+                let apiUrl = `https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/username/`;
+                
+                // Create request options
+                const requestOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    },
+                    body: `username=${encodeURIComponent(username)}&email=dummy@example.com`
+                };
+                
+                // If using proxy, route through proxy server
+                if (useProxy && proxyUrl) {
+                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
+                }
+                
+                // Alternative method using publicly available API
+                fetch(`https://www.instagram.com/web/search/topsearch/?query=${encodeURIComponent(username)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response error');
                         }
-                    } else {
-                        showResult(`Username @${username} is already taken.`, 'taken');
-                    }
-                }, 250); // Reduced to 250ms for a faster response
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Check if username exists in search results
+                        const exactMatch = data.users.some(user => 
+                            user.user.username.toLowerCase() === username.toLowerCase()
+                        );
+                        
+                        if (exactMatch) {
+                            showResult(`Username @${username} is already taken.`, 'taken');
+                        } else {
+                            // Make a second check to verify
+                            checkViaProfilePage(username, webhookUrl);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking username:', error);
+                        // Fall back to profile page check
+                        checkViaProfilePage(username, webhookUrl);
+                    })
+                    .finally(() => {
+                        if (callback) callback();
+                    });
             }
             
-            function checkBatchUsernameAvailability(username, webhookUrl, index) {
-                // Slight variation in check timing for more natural feeling
-                const checkTime = 150 + Math.floor(Math.random() * 150);
-                
-                setTimeout(() => {
-                    // Similar logic to the single check but for batch processing
-                    let isAvailable;
-                    
-                    const commonUsernames = ['john', 'jane', 'admin', 'instagram', 'photo', 'user', 'me', 'you', 'we', 'they'];
-                    if (username.length <= 4 || commonUsernames.includes(username.toLowerCase())) {
-                        isAvailable = Math.random() > 0.9;
-                    } else if (username.length <= 6) {
-                        isAvailable = Math.random() > 0.7;
-                    } else {
-                        isAvailable = Math.random() > 0.4;
-                    }
-                    
-                    const resultItem = document.getElementById(`result-${index}`);
-                    if (resultItem) {
-                        if (isAvailable) {
-                            resultItem.className = 'result-item available';
-                            resultItem.textContent = `@${username} is available!`;
+            function checkViaProfilePage(username, webhookUrl) {
+                // Check if profile page exists (second verification)
+                fetch(`https://www.instagram.com/${encodeURIComponent(username)}/`)
+                    .then(response => {
+                        if (response.status === 404) {
+                            // Username is available
+                            showResult(`Username @${username} is available!`, 'available');
                             
                             // Send to Discord webhook if URL is provided
                             if (webhookUrl) {
                                 sendToDiscordWebhook(username, webhookUrl);
                             }
                         } else {
-                            resultItem.className = 'result-item taken';
-                            resultItem.textContent = `@${username} is already taken.`;
+                            // Username is taken
+                            showResult(`Username @${username} is already taken.`, 'taken');
                         }
-                    }
-                }, checkTime);
+                    })
+                    .catch(error => {
+                        console.error('Error checking via profile:', error);
+                        showResult(`Error checking @${username}. Please try again later.`, 'error');
+                    });
+            }
+            
+            function checkBatchUsernameAvailability(username, webhookUrl, index, callback) {
+                const useProxy = useProxyCheckbox.checked;
+                const proxyUrl = proxyUrlInput.value.trim();
+                const resultItem = document.getElementById(`result-${index}`);
+                
+                // Create API url for search
+                let apiUrl = `https://www.instagram.com/web/search/topsearch/?query=${encodeURIComponent(username)}`;
+                
+                // If using proxy, route through proxy server
+                if (useProxy && proxyUrl) {
+                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
+                }
+                
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response error');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Check if username exists in search results
+                        const exactMatch = data.users.some(user => 
+                            user.user.username.toLowerCase() === username.toLowerCase()
+                        );
+                        
+                        if (exactMatch) {
+                            if (resultItem) {
+                                resultItem.className = 'result-item taken';
+                                resultItem.textContent = `@${username} is already taken.`;
+                            }
+                        } else {
+                            // Make a second check via profile page
+                            checkBatchViaProfilePage(username, webhookUrl, index);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking batch username:', error);
+                        // Fall back to profile check
+                        checkBatchViaProfilePage(username, webhookUrl, index);
+                    })
+                    .finally(() => {
+                        if (callback) callback();
+                    });
+            }
+            
+            function checkBatchViaProfilePage(username, webhookUrl, index) {
+                const useProxy = useProxyCheckbox.checked;
+                const proxyUrl = proxyUrlInput.value.trim();
+                const resultItem = document.getElementById(`result-${index}`);
+                
+                // Create API url for profile
+                let apiUrl = `https://www.instagram.com/${encodeURIComponent(username)}/`;
+                
+                // If using proxy, route through proxy server
+                if (useProxy && proxyUrl) {
+                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
+                }
+                
+                fetch(apiUrl)
+                    .then(response => {
+                        if (resultItem) {
+                            if (response.status === 404) {
+                                // Username is available
+                                resultItem.className = 'result-item available';
+                                resultItem.textContent = `@${username} is available!`;
+                                
+                                // Send to Discord webhook if URL is provided
+                                if (webhookUrl) {
+                                    sendToDiscordWebhook(username, webhookUrl);
+                                }
+                            } else {
+                                // Username is taken
+                                resultItem.className = 'result-item taken';
+                                resultItem.textContent = `@${username} is already taken.`;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking via profile batch:', error);
+                        if (resultItem) {
+                            resultItem.className = 'result-item error';
+                            resultItem.textContent = `Error checking @${username}. Try again later.`;
+                        }
+                    });
             }
             
             function showResult(message, type) {
@@ -355,6 +590,11 @@
             }
             
             function sendToDiscordWebhook(username, webhookUrl) {
+                if (!webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
+                    console.error('Invalid webhook URL');
+                    return;
+                }
+                
                 const data = {
                     content: `Available Instagram username found: @${username}`,
                     embeds: [{
@@ -362,23 +602,30 @@
                         description: `The username @${username} is available on Instagram!`,
                         color: 5814783, // A nice blue color
                         footer: {
-                            text: "Fast Instagram Username Checker"
+                            text: "Real Instagram Username Checker"
                         },
                         timestamp: new Date().toISOString()
                     }]
                 };
                 
-                // Log for demonstration
-                console.log("Sending to Discord webhook:", data);
-                
-                // In a real implementation, you would send this to your server
-                // which would then forward it to Discord
-                
-                // Simulate successful sending
-                const originalResult = resultDiv.innerHTML;
-                setTimeout(() => {
-                    showResult(`${originalResult}<br><small>✓ Sent to Discord!</small>`, 'available');
-                }, 300);
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        const originalResult = resultDiv.innerHTML;
+                        showResult(`${originalResult}<br><small>✓ Sent to Discord!</small>`, 'available');
+                    } else {
+                        console.error('Error sending to Discord webhook');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending to Discord webhook:', error);
+                });
             }
         });
     </script>
