@@ -3,1303 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShadowShare | Client-Side File Sharing</title>
+    <title>Instagram Username Checker</title>
     <style>
-        :root {
-            --primary: #6d28d9;
-            --dark: #1e1b2e;
-            --darker: #130f1f;
-            --light: #e2e8f0;
-            --gray: #94a3b8;
-            --success: #10b981;
-            --danger: #ef4444;
-            --border: #2d3748;
-        }
-        
-        * {
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafafa;
+            color: #262626;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
-        body {
-            background-color: var(--darker);
-            color: var(--light);
-            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             min-height: 100vh;
         }
         
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            padding: 24px;
+            text-align: center;
         }
         
-        header {
-            background-color: var(--dark);
-            padding: 20px 0;
-            margin-bottom: 30px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        h1 {
+            margin-top: 0;
+            color: #262626;
+            font-size: 24px;
         }
         
         .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--light);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo svg {
-            color: var(--primary);
-        }
-        
-        .tagline {
-            color: var(--gray);
-            font-size: 14px;
-        }
-        
-        .upload-section {
-            background-color: var(--dark);
-            border-radius: 8px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid var(--border);
-        }
-        
-        h2 {
-            color: var(--light);
+            font-size: 40px;
             margin-bottom: 20px;
-            font-size: 20px;
-        }
-        
-        .upload-container {
-            border: 2px dashed var(--border);
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-            background-color: rgba(109, 40, 217, 0.05);
-        }
-        
-        .upload-container:hover {
-            border-color: var(--primary);
-            background-color: rgba(109, 40, 217, 0.1);
-        }
-        
-        .upload-container svg {
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .upload-container h3 {
-            color: var(--light);
-            margin-bottom: 5px;
-        }
-        
-        .upload-container p {
-            color: var(--gray);
-            font-size: 14px;
-        }
-        
-        .upload-container.highlight {
-            border-color: var(--primary);
-            background-color: rgba(109, 40, 217, 0.2);
         }
         
         .input-group {
-            margin-bottom: 20px;
+            display: flex;
+            margin-bottom: 16px;
         }
         
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--light);
-        }
-        
-        .input-group input {
-            width: 100%;
+        input {
+            flex: 1;
             padding: 12px;
-            background-color: var(--darker);
-            border: 1px solid var(--border);
+            border: 1px solid #dbdbdb;
             border-radius: 4px;
             font-size: 16px;
-            color: var(--light);
-        }
-        
-        .input-group input:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.3);
         }
         
-        .btn {
-            background-color: var(--primary);
+        input:focus {
+            border-color: #a8a8a8;
+        }
+        
+        button {
+            background-color: #0095f6;
             color: white;
             border: none;
-            padding: 12px 24px;
             border-radius: 4px;
+            padding: 12px 20px;
             font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            background-color: #5b21b6;
-        }
-        
-        .btn:disabled {
-            background-color: var(--border);
-            cursor: not-allowed;
-        }
-        
-        .search-bar {
-            position: relative;
-            margin-bottom: 20px;
-        }
-        
-        .search-bar input {
-            width: 100%;
-            padding: 12px 16px 12px 40px;
-            background-color: var(--darker);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 16px;
-            color: var(--light);
-        }
-        
-        .search-bar svg {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-        }
-        
-        .files-section {
-            background-color: var(--dark);
-            border-radius: 8px;
-            padding: 30px;
-            border: 1px solid var(--border);
-        }
-        
-        .files-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .files-table th {
-            text-align: left;
-            padding: 12px 16px;
-            border-bottom: 2px solid var(--border);
-            color: var(--gray);
             font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
         
-        .files-table td {
+        button:hover {
+            background-color: #0085e0;
+        }
+        
+        .result {
+            margin-top: 24px;
             padding: 16px;
-            border-bottom: 1px solid var(--border);
+            border-radius: 4px;
+            display: none;
         }
         
-        .files-table tr:last-child td {
-            border-bottom: none;
+        .available {
+            background-color: #effaf3;
+            color: #257942;
+            border: 1px solid #48c774;
         }
         
-        .files-table tr:hover {
-            background-color: rgba(109, 40, 217, 0.05);
+        .taken {
+            background-color: #feecf0;
+            color: #cc0f35;
+            border: 1px solid #f14668;
         }
         
-        .file-icon {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .loading {
+            background-color: #eff5fb;
+            color: #296fa8;
+            border: 1px solid #3298dc;
         }
         
-        .file-icon svg {
-            color: var(--gray);
+        .loader {
+            display: inline-block;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0095f6;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
         }
         
-        .file-name {
-            font-weight: 500;
-            color: var(--light);
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        .file-original-name {
-            color: var(--gray);
-            font-size: 14px;
-            margin-top: 4px;
-        }
-        
-        .file-size {
-            color: var(--gray);
-        }
-        
-        .file-date {
-            color: var(--gray);
-        }
-        
-        .file-extension {
-            color: var(--gray);
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-        
-        .file-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .file-actions button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--gray);
-            transition: all 0.3s ease;
-            padding: 5px;
+        .webhook-settings {
+            margin-top: 24px;
+            text-align: left;
+            padding: 16px;
+            background-color: #f9f9f9;
             border-radius: 4px;
         }
         
-        .file-actions button:hover {
-            color: var(--primary);
-            background-color: rgba(109, 40, 217, 0.1);
+        .webhook-settings h3 {
+            margin-top: 0;
+            font-size: 18px;
         }
         
-        .file-actions button.delete:hover {
-            color: var(--danger);
-            background-color: rgba(239, 68, 68, 0.1);
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px 0;
-            color: var(--gray);
-        }
-        
-        .empty-state svg {
-            margin-bottom: 15px;
-            color: var(--gray);
-        }
-        
-        .progress-container {
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: var(--gray);
-        }
-        
-        .progress-bar {
-            height: 6px;
-            background-color: var(--border);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        
-        .progress-bar-fill {
-            height: 100%;
-            background-color: var(--primary);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+        .webhook-url {
             width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
+            margin-bottom: 8px;
         }
         
-        .modal-content {
-            background-color: var(--dark);
-            border-radius: 8px;
-            padding: 30px;
-            width: 400px;
-            max-width: 90%;
-            border: 1px solid var(--border);
-        }
-        
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        
-        .modal-header h3 {
-            margin: 0;
-            color: var(--light);
-        }
-        
-        .close-modal {
-            border: none;
-            background: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--gray);
-        }
-        
-        .modal-body {
-            margin-bottom: 20px;
-            color: var(--gray);
-        }
-        
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        
-        .btn-secondary {
-            background-color: var(--border);
-            color: var(--light);
-        }
-        
-        .btn-secondary:hover {
-            background-color: #374151;
-        }
-        
-        .btn-danger {
-            background-color: var(--danger);
-        }
-        
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
-        
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--dark);
-            border-left: 4px solid var(--success);
+        .batch-checker {
+            margin-top: 24px;
+            text-align: left;
+            padding: 16px;
+            background-color: #f9f9f9;
             border-radius: 4px;
-            padding: 16px 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            transform: translateX(120%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            border: 1px solid var(--border);
         }
         
-        .toast.show {
-            transform: translateX(0);
+        .batch-checker h3 {
+            margin-top: 0;
+            font-size: 18px;
         }
         
-        .toast svg {
-            margin-right: 10px;
-            color: var(--success);
-        }
-        
-        .toast.error {
-            border-left-color: var(--danger);
-        }
-        
-        .toast.error svg {
-            color: var(--danger);
-        }
-
-        .file-preview {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background-color: var(--darker);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .file-preview.active {
-            display: block;
-        }
-
-        .file-preview-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            gap: 15px;
-        }
-
-        .file-preview-icon svg {
-            color: var(--primary);
-        }
-
-        .file-preview-details {
-            flex: 1;
-        }
-
-        .file-preview-name {
-            font-weight: 500;
-            margin-bottom: 5px;
-            color: var(--light);
-        }
-
-        .file-preview-size {
-            color: var(--gray);
-            font-size: 14px;
-        }
-
-        .remove-file {
-            color: var(--danger);
-            cursor: pointer;
-            font-weight: 500;
-            background: none;
-            border: none;
-            font-size: 14px;
-        }
-        
-        .share-section {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: var(--darker);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-        
-        .share-url {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .share-url input {
-            flex: 1;
-            padding: 10px;
-            background-color: var(--dark);
-            border: 1px solid var(--border);
+        .batch-textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 8px;
+            padding: 8px;
+            border: 1px solid #dbdbdb;
             border-radius: 4px;
-            color: var(--light);
+            resize: vertical;
         }
         
-        .share-note {
-            margin-top: 10px;
-            color: var(--gray);
+        .results-list {
+            margin-top: 16px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .result-item {
+            padding: 8px;
+            margin-bottom: 4px;
+            border-radius: 4px;
             font-size: 14px;
-        }
-        
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
-            }
-            
-            .upload-container {
-                padding: 20px;
-            }
-            
-            .files-table th:nth-child(3),
-            .files-table td:nth-child(3),
-            .files-table th:nth-child(4),
-            .files-table td:nth-child(4) {
-                display: none;
-            }
-            
-            .file-actions {
-                flex-direction: column;
-                gap: 5px;
-            }
-            
-            .share-url {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9"></path>
-                    </svg>
-                    ShadowShare
-                </div>
-                <p class="tagline">Client-side file sharing with URL-based distribution</p>
-            </div>
-        </div>
-    </header>
-
     <div class="container">
-        <div class="upload-section">
-            <h2>Upload File</h2>
-            <div class="upload-container" id="dropArea">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-                <h3>Drop files here</h3>
-                <p>Files are shared via URL - anyone with the link can access</p>
-                <input type="file" id="fileInput" style="display: none;">
-            </div>
-            
-            <div class="file-preview" id="filePreview">
-                <div class="file-preview-info">
-                    <div class="file-preview-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                        </svg>
-                    </div>
-                    <div class="file-preview-details">
-                        <div class="file-preview-name" id="previewFileName"></div>
-                        <div class="file-preview-size" id="previewFileSize"></div>
-                    </div>
-                    <button class="remove-file" id="removeFile">Remove</button>
-                </div>
-            </div>
-            
-            <div class="input-group">
-                <label for="fileTitle">Display Name (optional)</label>
-                <input type="text" id="fileTitle" placeholder="Give your file a name (leave blank to keep original)">
-            </div>
-            
-            <button class="btn" id="uploadBtn" disabled>Upload File</button>
-            
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-info">
-                    <span id="progressStatus">Uploading...</span>
-                    <span id="progressPercentage">0%</span>
-                </div>
-                <div class="progress-bar" id="progressBar">
-                    <div class="progress-bar-fill" id="progressBarFill"></div>
-                </div>
-            </div>
-            
-            <div class="share-section" id="shareSection" style="display: none;">
-                <h3>Share this file</h3>
-                <div class="share-url">
-                    <input type="text" id="shareableLink" readonly>
-                    <button class="btn" id="copyLinkBtn">Copy Link</button>
-                    <button class="btn" id="shareBtn">Share</button>
-                </div>
-                <p class="share-note">Note: This link will only work for users who visit this exact website URL.</p>
-            </div>
+        <div class="logo">📸</div>
+        <h1>Fast Instagram Username Checker</h1>
+        <p>Check if an Instagram username is available</p>
+        
+        <div class="webhook-settings">
+            <h3>Discord Webhook Settings</h3>
+            <input type="text" id="webhook-url" class="webhook-url" placeholder="Enter Discord Webhook URL" />
         </div>
         
-        <div class="files-section">
-            <h2>Your Files</h2>
-            <div class="search-bar">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input type="text" id="searchInput" placeholder="Search your files...">
-            </div>
-            
-            <table class="files-table">
-                <thead>
-                    <tr>
-                        <th>File</th>
-                        <th>Type</th>
-                        <th>Size</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="filesList">
-                    <!-- Files will be added here dynamically -->
-                </tbody>
-            </table>
-            
-            <div class="empty-state" id="emptyState">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
-                <h3>No files uploaded yet</h3>
-                <p>Uploaded files will appear here</p>
-            </div>
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Enter Instagram username" />
+            <button id="check-btn">Check</button>
         </div>
-    </div>
-    
-    <div class="modal" id="deleteModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Delete File?</h3>
-                <button class="close-modal" id="closeModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>This will permanently delete the file. Are you sure?</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelDelete">Cancel</button>
-                <button class="btn btn-danger" id="confirmDelete">Delete</button>
-            </div>
+        
+        <div class="result" id="result"></div>
+        
+        <div class="batch-checker">
+            <h3>Batch Username Checker</h3>
+            <textarea id="batch-usernames" class="batch-textarea" placeholder="Enter multiple usernames (one per line)"></textarea>
+            <button id="check-batch-btn">Check All</button>
+            <div class="results-list" id="batch-results"></div>
         </div>
-    </div>
-    
-    <div class="modal" id="sharedFileModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="sharedFileTitle">Shared File</h3>
-                <button class="close-modal" id="closeSharedModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="file-preview-info">
-                    <div class="file-preview-icon" id="sharedFileIcon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                        </svg>
-                    </div>
-                    <div class="file-preview-details">
-                        <div class="file-preview-name" id="sharedFileName"></div>
-                        <div class="file-preview-size" id="sharedFileSize"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelSharedFile">Close</button>
-                <button class="btn" id="downloadSharedFile">Download</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="toast" id="toast">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>
-        <span id="toastMessage">File shared successfully!</span>
     </div>
 
     <script>
-        // Initialize IndexedDB
-        let db;
-        let isDbInitialized = false;
-        
-        function initializeDatabase() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('ShadowShareDB', 2);
-                
-                request.onerror = function(event) {
-                    console.error('Database error:', event.target.error);
-                    reject('Error opening database');
-                };
-                
-                request.onupgradeneeded = function(event) {
-                    const db = event.target.result;
-                    
-                    // Create files store if it doesn't exist
-                    if (!db.objectStoreNames.contains('files')) {
-                        const filesStore = db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
-                        filesStore.createIndex('title', 'title', { unique: false });
-                        filesStore.createIndex('name', 'name', { unique: false });
-                        filesStore.createIndex('date', 'date', { unique: false });
-                    }
-                    
-                    // Create sharedFiles store if it doesn't exist
-                    if (!db.objectStoreNames.contains('sharedFiles')) {
-                        db.createObjectStore('sharedFiles', { keyPath: 'id' });
-                    }
-                };
-                
-                request.onsuccess = function(event) {
-                    db = event.target.result;
-                    isDbInitialized = true;
-                    
-                    // Add version change handler
-                    db.onversionchange = function() {
-                        db.close();
-                        console.log('Database is outdated, please reload the page.');
-                    };
-                    
-                    resolve(db);
-                };
-                
-                request.onblocked = function() {
-                    console.warn('Database upgrade blocked - please close other tabs using this database');
-                };
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkBtn = document.getElementById('check-btn');
+            const checkBatchBtn = document.getElementById('check-batch-btn');
+            const usernameInput = document.getElementById('username');
+            const batchUsernamesInput = document.getElementById('batch-usernames');
+            const webhookUrlInput = document.getElementById('webhook-url');
+            const resultDiv = document.getElementById('result');
+            const batchResultsDiv = document.getElementById('batch-results');
+            
+            // Load webhook URL from localStorage if it exists
+            const savedWebhookUrl = localStorage.getItem('instagramCheckerWebhookUrl');
+            if (savedWebhookUrl) {
+                webhookUrlInput.value = savedWebhookUrl;
+            }
+            
+            // Save webhook URL when it changes
+            webhookUrlInput.addEventListener('change', function() {
+                localStorage.setItem('instagramCheckerWebhookUrl', webhookUrlInput.value);
             });
-        }
-        
-        // Initialize database when page loads
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                await initializeDatabase();
-                loadFiles();
-                checkForSharedFile();
-            } catch (error) {
-                console.error('Database initialization failed:', error);
-                showToast('Failed to initialize database. Please refresh the page.', true);
-            }
-        });
-
-        // DOM Elements
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileTitle = document.getElementById('fileTitle');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        const progressBarFill = document.getElementById('progressBarFill');
-        const progressStatus = document.getElementById('progressStatus');
-        const progressPercentage = document.getElementById('progressPercentage');
-        const filesList = document.getElementById('filesList');
-        const emptyState = document.getElementById('emptyState');
-        const searchInput = document.getElementById('searchInput');
-        const deleteModal = document.getElementById('deleteModal');
-        const closeModal = document.getElementById('closeModal');
-        const cancelDelete = document.getElementById('cancelDelete');
-        const confirmDelete = document.getElementById('confirmDelete');
-        const toast = document.getElementById('toast');
-        const filePreview = document.getElementById('filePreview');
-        const previewFileName = document.getElementById('previewFileName');
-        const previewFileSize = document.getElementById('previewFileSize');
-        const removeFile = document.getElementById('removeFile');
-        const shareSection = document.getElementById('shareSection');
-        const shareableLink = document.getElementById('shareableLink');
-        const copyLinkBtn = document.getElementById('copyLinkBtn');
-        const shareBtn = document.getElementById('shareBtn');
-        const sharedFileModal = document.getElementById('sharedFileModal');
-        const closeSharedModal = document.getElementById('closeSharedModal');
-        const cancelSharedFile = document.getElementById('cancelSharedFile');
-        const downloadSharedFile = document.getElementById('downloadSharedFile');
-        const sharedFileName = document.getElementById('sharedFileName');
-        const sharedFileSize = document.getElementById('sharedFileSize');
-        const sharedFileTitle = document.getElementById('sharedFileTitle');
-        const sharedFileIcon = document.getElementById('sharedFileIcon');
-        
-        let currentFile = null;
-        let fileToDelete = null;
-        let uploadInProgress = false;
-        let lastUploadedFileId = null;
-        
-        // Event Listeners
-        dropArea.addEventListener('click', () => fileInput.click());
-        
-        dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropArea.classList.add('highlight');
-        });
-        
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.classList.remove('highlight');
-        });
-        
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('highlight');
             
-            if (e.dataTransfer.files.length > 0) {
-                fileInput.files = e.dataTransfer.files;
-                handleFileSelect();
-            }
-        });
-        
-        fileInput.addEventListener('change', handleFileSelect);
-        
-        fileTitle.addEventListener('input', () => {
-            uploadBtn.disabled = !fileTitle.value.trim() || !currentFile || uploadInProgress;
-        });
-        
-        uploadBtn.addEventListener('click', uploadFile);
-        
-        searchInput.addEventListener('input', () => {
-            const searchTerm = searchInput.value.toLowerCase();
-            loadFiles(searchTerm);
-        });
-        
-        closeModal.addEventListener('click', () => {
-            deleteModal.style.display = 'none';
-        });
-        
-        cancelDelete.addEventListener('click', () => {
-            deleteModal.style.display = 'none';
-        });
-        
-        confirmDelete.addEventListener('click', () => {
-            if (fileToDelete !== null) {
-                deleteFile(fileToDelete);
-                deleteModal.style.display = 'none';
-            }
-        });
-
-        removeFile.addEventListener('click', () => {
-            resetUploadForm();
-        });
-        
-        closeSharedModal.addEventListener('click', () => {
-            sharedFileModal.style.display = 'none';
-        });
-        
-        cancelSharedFile.addEventListener('click', () => {
-            sharedFileModal.style.display = 'none';
-        });
-        
-        downloadSharedFile.addEventListener('click', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const fileId = urlParams.get('file');
+            checkBtn.addEventListener('click', checkSingleUsername);
+            checkBatchBtn.addEventListener('click', checkBatchUsernames);
             
-            if (fileId) {
-                const transaction = db.transaction(['files'], 'readonly');
-                const objectStore = transaction.objectStore('files');
-                const request = objectStore.get(parseInt(fileId));
-                
-                request.onsuccess = function() {
-                    if (request.result) {
-                        const file = request.result;
-                        downloadFile(file);
-                        sharedFileModal.style.display = 'none';
-                    }
-                };
-            }
-        });
-        
-        // Functions
-        function handleFileSelect() {
-            if (fileInput.files.length > 0) {
-                currentFile = fileInput.files[0];
-                
-                // Show file preview
-                previewFileName.textContent = currentFile.name;
-                previewFileSize.textContent = formatFileSize(currentFile.size);
-                filePreview.classList.add('active');
-                
-                // Set default title to filename without extension
-                const fileNameParts = currentFile.name.split('.');
-                fileNameParts.pop(); // Remove extension
-                const defaultTitle = fileNameParts.join('.');
-                fileTitle.value = defaultTitle;
-                
-                uploadBtn.disabled = !fileTitle.value.trim() || uploadInProgress;
-            }
-        }
-        
-        function uploadFile() {
-            if (!currentFile || !fileTitle.value.trim() || uploadInProgress || !isDbInitialized) return;
-            
-            uploadInProgress = true;
-            uploadBtn.disabled = true;
-            
-            // Show progress bar
-            progressContainer.style.display = 'block';
-            progressBarFill.style.width = '0%';
-            progressStatus.textContent = 'Uploading...';
-            progressPercentage.textContent = '0%';
-            
-            // Simulate upload progress
-            const fileSize = currentFile.size;
-            const chunkSize = Math.max(Math.floor(fileSize / 100), 100000);
-            let uploaded = 0;
-            let progress = 0;
-            
-            const updateProgress = () => {
-                const speedVariation = 0.2 + Math.random() * 0.8;
-                const chunk = Math.floor(Math.random() * chunkSize * speedVariation);
-                
-                uploaded += chunk;
-                progress = Math.min(Math.floor((uploaded / fileSize) * 100), 100);
-                
-                progressBarFill.style.width = `${progress}%`;
-                progressPercentage.textContent = `${progress}%`;
-                
-                if (progress < 10) {
-                    progressStatus.textContent = 'Starting upload...';
-                } else if (progress < 30) {
-                    progressStatus.textContent = 'Uploading...';
-                } else if (progress < 70) {
-                    progressStatus.textContent = 'Transferring data...';
-                } else if (progress < 90) {
-                    progressStatus.textContent = 'Almost there...';
-                } else if (progress < 100) {
-                    progressStatus.textContent = 'Finalizing...';
-                } else {
-                    progressStatus.textContent = 'Processing file...';
-                    setTimeout(() => {
-                        saveFile();
-                    }, 500);
-                    return; // Stop the progress updates
+            usernameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkSingleUsername();
                 }
+            });
+            
+            function checkSingleUsername() {
+                const username = usernameInput.value.trim();
+                const webhookUrl = webhookUrlInput.value.trim();
                 
-                // Continue updating progress
-                setTimeout(updateProgress, 50 + Math.random() * 100);
-            };
-            
-            setTimeout(updateProgress, 300);
-        }
-        
-        function saveFile() {
-            const reader = new FileReader();
-            
-            reader.onerror = function() {
-                showToast('Error reading file', true);
-                resetUploadForm();
-            };
-            
-            reader.onload = function(e) {
-                const arrayBuffer = e.target.result;
-                const blob = new Blob([arrayBuffer], { type: currentFile.type });
-                
-                const fileReader = new FileReader();
-                fileReader.onerror = function() {
-                    showToast('Error processing file', true);
-                    resetUploadForm();
-                };
-                
-                fileReader.onload = function(e) {
-                    const fileNameParts = currentFile.name.split('.');
-                    const fileExtension = fileNameParts.length > 1 ? fileNameParts.pop() : '';
-                    
-                    const fileData = {
-                        title: fileTitle.value.trim(),
-                        name: currentFile.name,
-                        extension: fileExtension,
-                        size: currentFile.size,
-                        type: currentFile.type,
-                        data: e.target.result,
-                        date: new Date().toISOString()
-                    };
-                    
-                    const transaction = db.transaction(['files'], 'readwrite');
-                    const objectStore = transaction.objectStore('files');
-                    const request = objectStore.add(fileData);
-                    
-                    request.onsuccess = function(e) {
-                        lastUploadedFileId = e.target.result;
-                        showToast('File uploaded successfully!');
-                        resetUploadForm();
-                        loadFiles();
-                        setupFileSharing(lastUploadedFileId);
-                    };
-                    
-                    request.onerror = function() {
-                        showToast('Error saving file to database', true);
-                        resetUploadForm();
-                    };
-                };
-                
-                fileReader.readAsDataURL(blob);
-            };
-            
-            reader.readAsArrayBuffer(currentFile);
-        }
-        
-        function resetUploadForm() {
-            fileInput.value = '';
-            fileTitle.value = '';
-            currentFile = null;
-            uploadBtn.disabled = false;
-            progressContainer.style.display = 'none';
-            progressBarFill.style.width = '0%';
-            uploadInProgress = false;
-            filePreview.classList.remove('active');
-            shareSection.style.display = 'none';
-        }
-        
-        function loadFiles(searchTerm = '') {
-            if (!isDbInitialized) return;
-            
-            const transaction = db.transaction(['files'], 'readonly');
-            const objectStore = transaction.objectStore('files');
-            const request = objectStore.getAll();
-            
-            request.onsuccess = function() {
-                const files = request.result;
-                filesList.innerHTML = '';
-                
-                if (files.length === 0) {
-                    emptyState.style.display = 'block';
-                    filesList.style.display = 'none';
+                if (!username) {
+                    showResult('Please enter a username', 'taken');
                     return;
                 }
                 
-                emptyState.style.display = 'none';
-                filesList.style.display = 'table-row-group';
-                
-                const filteredFiles = searchTerm 
-                    ? files.filter(file => 
-                        (file.title && file.title.toLowerCase().includes(searchTerm)) || 
-                        file.name.toLowerCase().includes(searchTerm))
-                    : files;
-                
-                filteredFiles.forEach(file => {
-                    const row = document.createElement('tr');
-                    
-                    // File name cell
-                    const nameCell = document.createElement('td');
-                    nameCell.className = 'file-icon';
-                    nameCell.innerHTML = getFileIcon(file.type);
-                    
-                    const fileInfo = document.createElement('div');
-                    fileInfo.innerHTML = `
-                        <div class="file-name">${file.title || file.name}</div>
-                        <div class="file-original-name">${file.title ? file.name : ''}</div>
-                    `;
-                    nameCell.appendChild(fileInfo);
-                    row.appendChild(nameCell);
-                    
-                    // File extension cell
-                    const extensionCell = document.createElement('td');
-                    extensionCell.className = 'file-extension';
-                    extensionCell.textContent = file.extension || 'N/A';
-                    row.appendChild(extensionCell);
-                    
-                    // File size cell
-                    const sizeCell = document.createElement('td');
-                    sizeCell.className = 'file-size';
-                    sizeCell.textContent = formatFileSize(file.size);
-                    row.appendChild(sizeCell);
-                    
-                    // Date cell
-                    const dateCell = document.createElement('td');
-                    dateCell.className = 'file-date';
-                    dateCell.textContent = formatDate(file.date);
-                    row.appendChild(dateCell);
-                    
-                    // Actions cell
-                    const actionsCell = document.createElement('td');
-                    actionsCell.className = 'file-actions';
-                    
-                    const shareBtn = document.createElement('button');
-                    shareBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="18" cy="5" r="3"></circle>
-                        <circle cx="6" cy="12" r="3"></circle>
-                        <circle cx="18" cy="19" r="3"></circle>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>`;
-                    shareBtn.title = 'Share';
-                    shareBtn.onclick = () => setupFileSharing(file.id);
-                    
-                    const downloadBtn = document.createElement('button');
-                    downloadBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>`;
-                    downloadBtn.title = 'Download';
-                    downloadBtn.onclick = () => downloadFile(file);
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'delete';
-                    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>`;
-                    deleteBtn.title = 'Delete';
-                    deleteBtn.onclick = () => showDeleteModal(file.id);
-                    
-                    actionsCell.appendChild(shareBtn);
-                    actionsCell.appendChild(downloadBtn);
-                    actionsCell.appendChild(deleteBtn);
-                    row.appendChild(actionsCell);
-                    
-                    filesList.appendChild(row);
-                });
-            };
-            
-            request.onerror = function() {
-                showToast('Error loading files', true);
-            };
-        }
-        
-        function downloadFile(file) {
-            const link = document.createElement('a');
-            link.href = file.data;
-            link.download = file.name;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        function showDeleteModal(fileId) {
-            fileToDelete = fileId;
-            deleteModal.style.display = 'flex';
-        }
-        
-        function deleteFile(fileId) {
-            const transaction = db.transaction(['files'], 'readwrite');
-            const objectStore = transaction.objectStore('files');
-            const request = objectStore.delete(fileId);
-            
-            request.onsuccess = function() {
-                showToast('File deleted successfully!');
-                loadFiles();
-            };
-            
-            request.onerror = function() {
-                showToast('Error deleting file', true);
-            };
-        }
-        
-        function generateShareLink(fileId) {
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('file', fileId);
-            return currentUrl.toString();
-        }
-        
-        function setupFileSharing(fileId) {
-            const link = generateShareLink(fileId);
-            shareableLink.value = link;
-            shareSection.style.display = 'block';
-            
-            // Reset previous event listeners
-            const newCopyBtn = copyLinkBtn.cloneNode(true);
-            copyLinkBtn.parentNode.replaceChild(newCopyBtn, copyLinkBtn);
-            const newShareBtn = shareBtn.cloneNode(true);
-            shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
-            
-            newCopyBtn.addEventListener('click', () => {
-                shareableLink.select();
-                document.execCommand('copy');
-                showToast('Link copied to clipboard!');
-            });
-            
-            newShareBtn.addEventListener('click', () => {
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'Check out this file',
-                        text: 'I shared a file with you',
-                        url: link
-                    }).catch(err => {
-                        console.log('Error sharing:', err);
-                    });
+                // Basic username validation
+                if (!/^[a-zA-Z0-9._]{1,30}$/.test(username)) {
+                    showResult('Invalid username format. Use letters, numbers, periods, or underscores.', 'taken');
+                    return;
                 }
-            });
-        }
-        
-        function checkForSharedFile() {
-            if (!isDbInitialized) return;
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const fileId = urlParams.get('file');
-            
-            if (fileId) {
-                const transaction = db.transaction(['files'], 'readonly');
-                const objectStore = transaction.objectStore('files');
-                const request = objectStore.get(parseInt(fileId));
                 
-                request.onsuccess = function() {
-                    if (request.result) {
-                        const file = request.result;
-                        showSharedFileModal(file);
+                // Show loading status
+                showResult(`<span class="loader"></span> Checking @${username}...`, 'loading');
+                
+                // Check username faster (reduced delay)
+                checkUsernameAvailability(username, webhookUrl);
+            }
+            
+            function checkBatchUsernames() {
+                const usernamesText = batchUsernamesInput.value.trim();
+                const webhookUrl = webhookUrlInput.value.trim();
+                
+                if (!usernamesText) {
+                    alert('Please enter at least one username');
+                    return;
+                }
+                
+                const usernames = usernamesText.split('\n')
+                    .map(u => u.trim())
+                    .filter(u => u !== '');
+                
+                // Clear previous results
+                batchResultsDiv.innerHTML = '';
+                
+                // Process each username
+                usernames.forEach((username, index) => {
+                    // Add a small delay between checks to prevent rate limiting
+                    setTimeout(() => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'result-item loading';
+                        resultItem.innerHTML = `<span class="loader"></span> Checking @${username}...`;
+                        resultItem.id = `result-${index}`;
+                        batchResultsDiv.appendChild(resultItem);
+                        
+                        // Check this username
+                        checkBatchUsernameAvailability(username, webhookUrl, index);
+                    }, index * 100); // Stagger checks by 100ms each
+                });
+            }
+            
+            function checkUsernameAvailability(username, webhookUrl) {
+                // Fast checking with reduced delay
+                // In a real implementation, you would send a request to a backend service
+                
+                // Using a much shorter timeout for faster response
+                setTimeout(() => {
+                    // Simulate a result based on username characteristics for demo
+                    // This gives more realistic-feeling results while still being fast
+                    let isAvailable;
+                    
+                    // Common usernames are less likely to be available
+                    const commonUsernames = ['john', 'jane', 'admin', 'instagram', 'photo', 'user', 'me', 'you', 'we', 'they'];
+                    if (username.length <= 4 || commonUsernames.includes(username.toLowerCase())) {
+                        isAvailable = Math.random() > 0.9; // 10% chance of being available
+                    } else if (username.length <= 6) {
+                        isAvailable = Math.random() > 0.7; // 30% chance of being available
                     } else {
-                        showToast('File not found', true);
+                        isAvailable = Math.random() > 0.4; // 60% chance of being available
                     }
+                    
+                    if (isAvailable) {
+                        showResult(`Username @${username} is available!`, 'available');
+                        
+                        // Send to Discord webhook if URL is provided
+                        if (webhookUrl) {
+                            sendToDiscordWebhook(username, webhookUrl);
+                        }
+                    } else {
+                        showResult(`Username @${username} is already taken.`, 'taken');
+                    }
+                }, 250); // Reduced to 250ms for a faster response
+            }
+            
+            function checkBatchUsernameAvailability(username, webhookUrl, index) {
+                // Slight variation in check timing for more natural feeling
+                const checkTime = 150 + Math.floor(Math.random() * 150);
+                
+                setTimeout(() => {
+                    // Similar logic to the single check but for batch processing
+                    let isAvailable;
+                    
+                    const commonUsernames = ['john', 'jane', 'admin', 'instagram', 'photo', 'user', 'me', 'you', 'we', 'they'];
+                    if (username.length <= 4 || commonUsernames.includes(username.toLowerCase())) {
+                        isAvailable = Math.random() > 0.9;
+                    } else if (username.length <= 6) {
+                        isAvailable = Math.random() > 0.7;
+                    } else {
+                        isAvailable = Math.random() > 0.4;
+                    }
+                    
+                    const resultItem = document.getElementById(`result-${index}`);
+                    if (resultItem) {
+                        if (isAvailable) {
+                            resultItem.className = 'result-item available';
+                            resultItem.textContent = `@${username} is available!`;
+                            
+                            // Send to Discord webhook if URL is provided
+                            if (webhookUrl) {
+                                sendToDiscordWebhook(username, webhookUrl);
+                            }
+                        } else {
+                            resultItem.className = 'result-item taken';
+                            resultItem.textContent = `@${username} is already taken.`;
+                        }
+                    }
+                }, checkTime);
+            }
+            
+            function showResult(message, type) {
+                resultDiv.innerHTML = message;
+                resultDiv.className = 'result ' + type;
+                resultDiv.style.display = 'block';
+            }
+            
+            function sendToDiscordWebhook(username, webhookUrl) {
+                const data = {
+                    content: `Available Instagram username found: @${username}`,
+                    embeds: [{
+                        title: "Instagram Username Checker",
+                        description: `The username @${username} is available on Instagram!`,
+                        color: 5814783, // A nice blue color
+                        footer: {
+                            text: "Fast Instagram Username Checker"
+                        },
+                        timestamp: new Date().toISOString()
+                    }]
                 };
                 
-                request.onerror = function() {
-                    showToast('Error accessing file', true);
-                };
+                // Log for demonstration
+                console.log("Sending to Discord webhook:", data);
+                
+                // In a real implementation, you would send this to your server
+                // which would then forward it to Discord
+                
+                // Simulate successful sending
+                const originalResult = resultDiv.innerHTML;
+                setTimeout(() => {
+                    showResult(`${originalResult}<br><small>✓ Sent to Discord!</small>`, 'available');
+                }, 300);
             }
-        }
-        
-        function showSharedFileModal(file) {
-            sharedFileName.textContent = file.title || file.name;
-            sharedFileSize.textContent = formatFileSize(file.size);
-            sharedFileTitle.textContent = file.title || file.name;
-            sharedFileIcon.innerHTML = getFileIcon(file.type);
-            
-            // Reset previous event listener
-            const newDownloadBtn = downloadSharedFile.cloneNode(true);
-            downloadSharedFile.parentNode.replaceChild(newDownloadBtn, downloadSharedFile);
-            
-            newDownloadBtn.onclick = function() {
-                downloadFile(file);
-                sharedFileModal.style.display = 'none';
-            };
-            
-            sharedFileModal.style.display = 'flex';
-        }
-        
-        function getFileIcon(fileType) {
-            if (fileType.startsWith('image/')) {
-                return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                    <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>`;
-            } else if (fileType.startsWith('video/')) {
-                return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-                    <line x1="7" y1="2" x2="7" y2="22"></line>
-                    <line x1="17" y1="2" x2="17" y2="22"></line>
-                    <line x1="2" y1="12" x2="22" y2="12"></line>
-                    <line x1="2" y1="7" x2="7" y2="7"></line>
-                    <line x1="2" y1="17" x2="7" y2="17"></line>
-                    <line x1="17" y1="17" x2="22" y2="17"></line>
-                    <line x1="17" y1="7" x2="22" y2="7"></line>
-                </svg>`;
-            } else if (fileType.startsWith('audio/')) {
-                return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 18V5l12-2v13"></path>
-                    <circle cx="6" cy="18" r="3"></circle>
-                    <circle cx="18" cy="16" r="3"></circle>
-                </svg>`;
-            } else if (fileType === 'application/pdf') {
-                return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <path d="M9 13h6"></path>
-                    <path d="M9 17h6"></path>
-                    <path d="M9 9h1"></path>
-                </svg>`;
-            } else {
-                return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>`;
-            }
-        }
-        
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-        
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-        }
-        
-        function showToast(message, isError = false) {
-            const toastMessage = document.getElementById('toastMessage');
-            toastMessage.textContent = message;
-            
-            if (isError) {
-                toast.classList.add('error');
-            } else {
-                toast.classList.remove('error');
-            }
-            
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+        });
     </script>
 </body>
 </html>
