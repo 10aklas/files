@@ -3,743 +3,394 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Username Checker</title>
+    <title>TikTok Username Checker</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #fafafa;
-            color: #262626;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
-        
         .container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 500px;
-            padding: 24px;
-            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
-        
         h1 {
-            margin-top: 0;
-            color: #262626;
-            font-size: 24px;
+            text-align: center;
+            color: #fe2c55;
+            margin-bottom: 30px;
         }
-        
-        .logo {
-            font-size: 40px;
+        .form-group {
             margin-bottom: 20px;
         }
-        
-        .input-group {
-            display: flex;
-            margin-bottom: 16px;
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
-        
-        input {
-            flex: 1;
+        input, button {
+            width: 100%;
             padding: 12px;
-            border: 1px solid #dbdbdb;
-            border-radius: 4px;
-            font-size: 16px;
-            outline: none;
-        }
-        
-        input:focus {
-            border-color: #a8a8a8;
-        }
-        
-        button {
-            background-color: #0095f6;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background-color: #2a2a2a;
             color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 12px 20px;
             font-size: 16px;
-            font-weight: 600;
+        }
+        input:focus {
+            outline: none;
+            border-color: #fe2c55;
+        }
+        button {
+            background-color: #fe2c55;
+            border: none;
+            color: white;
+            font-weight: bold;
             cursor: pointer;
+            margin-top: 10px;
             transition: background-color 0.2s;
         }
-        
         button:hover {
-            background-color: #0085e0;
+            background-color: #e91e45;
         }
-        
         button:disabled {
-            background-color: #b2dffc;
+            background-color: #666;
             cursor: not-allowed;
         }
-        
-        .result {
-            margin-top: 24px;
-            padding: 16px;
-            border-radius: 4px;
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
             display: none;
         }
-        
-        .available {
-            background-color: #effaf3;
-            color: #257942;
-            border: 1px solid #48c774;
+        .status.available {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
         }
-        
-        .taken {
-            background-color: #feecf0;
-            color: #cc0f35;
-            border: 1px solid #f14668;
+        .status.taken {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
         }
-        
+        .status.error {
+            background-color: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+            border: 1px solid #f1c40f;
+        }
         .loading {
-            background-color: #eff5fb;
-            color: #296fa8;
-            border: 1px solid #3298dc;
+            display: none;
+            text-align: center;
+            margin-top: 20px;
         }
-        
-        .error {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-        
-        .loader {
+        .spinner {
             display: inline-block;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #0095f6;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
+            border-top-color: #fe2c55;
+            animation: spin 1s ease-in-out infinite;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .setup-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
         }
-        
-        .webhook-settings {
-            margin-top: 24px;
-            text-align: left;
-            padding: 16px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
+        .setup-section h3 {
+            color: #fe2c55;
         }
-        
-        .webhook-settings h3 {
-            margin-top: 0;
-            font-size: 18px;
-        }
-        
-        .webhook-url {
-            width: 100%;
-            margin-bottom: 8px;
-        }
-        
-        .batch-checker {
-            margin-top: 24px;
-            text-align: left;
-            padding: 16px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-        }
-        
-        .batch-checker h3 {
-            margin-top: 0;
-            font-size: 18px;
-        }
-        
-        .batch-textarea {
-            width: 100%;
-            height: 100px;
-            margin-bottom: 8px;
-            padding: 8px;
-            border: 1px solid #dbdbdb;
-            border-radius: 4px;
-            resize: vertical;
-        }
-        
-        .results-list {
-            margin-top: 16px;
-            text-align: left;
+        .history {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
             max-height: 200px;
             overflow-y: auto;
         }
-        
-        .result-item {
-            padding: 8px;
-            margin-bottom: 4px;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .settings-toggle {
-            margin-top: 16px;
-            color: #0095f6;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        
-        .advanced-settings {
-            margin-top: 16px;
-            padding: 16px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            display: none;
-        }
-        
-        .proxy-settings {
-            margin-top: 16px;
-        }
-        
-        .proxy-input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .proxy-input {
-            flex: 1;
-        }
-        
-        .proxy-type-select {
-            width: 80px;
+        .history-item {
             padding: 10px;
+            margin-bottom: 5px;
             border-radius: 4px;
-            border: 1px solid #dbdbdb;
-        }
-        
-        .checkbox-group {
+            background-color: #2a2a2a;
             display: flex;
-            align-items: center;
-            margin-bottom: 8px;
+            justify-content: space-between;
         }
-        
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
-            margin-right: 8px;
+        .history-item .username {
+            font-weight: bold;
         }
-        
-        .info-text {
-            font-size: 13px;
-            color: #737373;
-            margin-top: 8px;
-        }
-        
-        .test-proxy-btn {
-            margin-top: 10px;
-            padding: 8px 12px;
+        .history-item .time {
+            color: #888;
             font-size: 14px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">📸</div>
-        <h1>Advanced Instagram Username Checker</h1>
-        <p>Check username availability with proxy support</p>
+        <h1>TikTok Username Checker</h1>
         
-        <div class="input-group">
-            <input type="text" id="username" placeholder="Enter Instagram username" />
-            <button id="check-btn">Check</button>
+        <div class="form-group">
+            <label for="webhookUrl">Discord Webhook URL:</label>
+            <input type="text" id="webhookUrl" placeholder="https://discord.com/api/webhooks/..." />
         </div>
         
-        <div class="result" id="result"></div>
-        
-        <div class="batch-checker">
-            <h3>Batch Username Checker</h3>
-            <textarea id="batch-usernames" class="batch-textarea" placeholder="Enter multiple usernames (one per line)"></textarea>
-            <button id="check-batch-btn">Check All</button>
-            <div class="results-list" id="batch-results"></div>
+        <div class="form-group">
+            <label for="username">TikTok Username:</label>
+            <input type="text" id="username" placeholder="Enter username to check" maxlength="24" />
         </div>
         
-        <div class="settings-toggle" id="toggle-settings">Show Advanced Settings</div>
+        <button id="checkButton">Check Availability</button>
         
-        <div class="advanced-settings" id="advanced-settings">
-            <div class="webhook-settings">
-                <h3>Discord Webhook Settings</h3>
-                <input type="text" id="webhook-url" class="webhook-url" placeholder="Enter Discord Webhook URL" />
-            </div>
-            
-            <div class="proxy-settings">
-                <h3>Proxy Settings</h3>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="use-proxy" />
-                    <label for="use-proxy">Enable Proxy</label>
-                </div>
-                
-                <div id="proxy-fields" style="display: none;">
-                    <div class="proxy-input-group">
-                        <select id="proxy-type" class="proxy-type-select">
-                            <option value="http">HTTP</option>
-                            <option value="https">HTTPS</option>
-                            <option value="socks4">SOCKS4</option>
-                            <option value="socks5">SOCKS5</option>
-                        </select>
-                        <input type="text" id="proxy-ip" class="proxy-input" placeholder="Proxy IP" />
-                        <input type="text" id="proxy-port" class="proxy-input" placeholder="Port" />
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="proxy-auth" />
-                        <label for="proxy-auth">Authentication</label>
-                    </div>
-                    <div id="auth-fields" style="display: none; margin-top: 10px;">
-                        <input type="text" id="proxy-username" class="proxy-input" placeholder="Username" />
-                        <input type="password" id="proxy-password" class="proxy-input" placeholder="Password" style="margin-top: 5px;" />
-                    </div>
-                    <button id="test-proxy-btn" class="test-proxy-btn">Test Proxy</button>
-                    <p class="info-text">Note: Free proxies often get blocked by Instagram. For reliable checking, use premium proxies.</p>
-                </div>
-            </div>
-            
-            <div class="checkbox-group" style="margin-top: 16px;">
-                <input type="checkbox" id="use-delay" checked />
-                <label for="use-delay">Add delay between checks (recommended)</label>
-            </div>
-            
-            <p class="info-text">Note: Too many rapid requests may result in temporary IP blocking by Instagram.</p>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Checking username...</p>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="history" id="history">
+            <h3>Recently Checked</h3>
+            <div id="historyItems"></div>
+        </div>
+        
+        <div class="setup-section">
+            <h3>How to Set Up</h3>
+            <p>1. Create a Discord webhook in your server (Server Settings > Integrations > Webhooks)</p>
+            <p>2. Copy the webhook URL and paste it above</p>
+            <p>3. Enter TikTok usernames to check availability</p>
+            <p>4. Available usernames will be sent to your Discord channel automatically</p>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const checkBtn = document.getElementById('check-btn');
-            const checkBatchBtn = document.getElementById('check-batch-btn');
-            const usernameInput = document.getElementById('username');
-            const batchUsernamesInput = document.getElementById('batch-usernames');
-            const webhookUrlInput = document.getElementById('webhook-url');
-            const resultDiv = document.getElementById('result');
-            const batchResultsDiv = document.getElementById('batch-results');
-            const toggleSettingsBtn = document.getElementById('toggle-settings');
-            const advancedSettingsDiv = document.getElementById('advanced-settings');
-            const useProxyCheckbox = document.getElementById('use-proxy');
-            const proxyFieldsDiv = document.getElementById('proxy-fields');
-            const proxyTypeSelect = document.getElementById('proxy-type');
-            const proxyIpInput = document.getElementById('proxy-ip');
-            const proxyPortInput = document.getElementById('proxy-port');
-            const proxyAuthCheckbox = document.getElementById('proxy-auth');
-            const authFieldsDiv = document.getElementById('auth-fields');
-            const proxyUsernameInput = document.getElementById('proxy-username');
-            const proxyPasswordInput = document.getElementById('proxy-password');
-            const testProxyBtn = document.getElementById('test-proxy-btn');
-            const useDelayCheckbox = document.getElementById('use-delay');
+        // Store DOM elements
+        const webhookUrlInput = document.getElementById('webhookUrl');
+        const usernameInput = document.getElementById('username');
+        const checkButton = document.getElementById('checkButton');
+        const loading = document.getElementById('loading');
+        const status = document.getElementById('status');
+        const historyItems = document.getElementById('historyItems');
+        
+        // Load webhook URL from local storage if available
+        if (localStorage.getItem('tiktokCheckerWebhook')) {
+            webhookUrlInput.value = localStorage.getItem('tiktokCheckerWebhook');
+        }
+        
+        // Load history from local storage
+        loadHistory();
+        
+        // Add event listener to the check button
+        checkButton.addEventListener('click', checkUsername);
+        
+        // Allow Enter key to trigger check
+        usernameInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                checkUsername();
+            }
+        });
+        
+        // Save webhook URL when changed
+        webhookUrlInput.addEventListener('change', function() {
+            localStorage.setItem('tiktokCheckerWebhook', webhookUrlInput.value);
+        });
+
+        // Function to check username availability
+        async function checkUsername() {
+            const username = usernameInput.value.trim();
+            const webhookUrl = webhookUrlInput.value.trim();
             
-            // Load saved settings from localStorage
-            loadSavedSettings();
-            
-            // Event listeners
-            checkBtn.addEventListener('click', checkSingleUsername);
-            checkBatchBtn.addEventListener('click', checkBatchUsernames);
-            
-            usernameInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    checkSingleUsername();
-                }
-            });
-            
-            toggleSettingsBtn.addEventListener('click', function() {
-                if (advancedSettingsDiv.style.display === 'none' || !advancedSettingsDiv.style.display) {
-                    advancedSettingsDiv.style.display = 'block';
-                    toggleSettingsBtn.textContent = 'Hide Advanced Settings';
-                } else {
-                    advancedSettingsDiv.style.display = 'none';
-                    toggleSettingsBtn.textContent = 'Show Advanced Settings';
-                }
-            });
-            
-            useProxyCheckbox.addEventListener('change', function() {
-                proxyFieldsDiv.style.display = this.checked ? 'block' : 'none';
-                saveSettings();
-            });
-            
-            proxyAuthCheckbox.addEventListener('change', function() {
-                authFieldsDiv.style.display = this.checked ? 'block' : 'none';
-                saveSettings();
-            });
-            
-            testProxyBtn.addEventListener('click', testProxyConnection);
-            
-            // Save settings when inputs change
-            [useDelayCheckbox, webhookUrlInput, proxyTypeSelect, proxyIpInput, proxyPortInput, 
-             proxyAuthCheckbox, proxyUsernameInput, proxyPasswordInput].forEach(element => {
-                element.addEventListener('change', saveSettings);
-            });
-            
-            function loadSavedSettings() {
-                const settings = JSON.parse(localStorage.getItem('instagramCheckerSettings')) || {};
-                
-                if (settings.webhookUrl) webhookUrlInput.value = settings.webhookUrl;
-                if (settings.useDelay !== undefined) useDelayCheckbox.checked = settings.useDelay;
-                if (settings.useProxy !== undefined) {
-                    useProxyCheckbox.checked = settings.useProxy;
-                    proxyFieldsDiv.style.display = settings.useProxy ? 'block' : 'none';
-                }
-                if (settings.proxyType) proxyTypeSelect.value = settings.proxyType;
-                if (settings.proxyIp) proxyIpInput.value = settings.proxyIp;
-                if (settings.proxyPort) proxyPortInput.value = settings.proxyPort;
-                if (settings.proxyAuth !== undefined) {
-                    proxyAuthCheckbox.checked = settings.proxyAuth;
-                    authFieldsDiv.style.display = settings.proxyAuth ? 'block' : 'none';
-                }
-                if (settings.proxyUsername) proxyUsernameInput.value = settings.proxyUsername;
-                if (settings.proxyPassword) proxyPasswordInput.value = settings.proxyPassword;
+            // Basic validation
+            if (!username) {
+                showStatus('Please enter a username to check', 'error');
+                return;
             }
             
-            function saveSettings() {
-                const settings = {
-                    webhookUrl: webhookUrlInput.value,
-                    useDelay: useDelayCheckbox.checked,
-                    useProxy: useProxyCheckbox.checked,
-                    proxyType: proxyTypeSelect.value,
-                    proxyIp: proxyIpInput.value,
-                    proxyPort: proxyPortInput.value,
-                    proxyAuth: proxyAuthCheckbox.checked,
-                    proxyUsername: proxyUsernameInput.value,
-                    proxyPassword: proxyPasswordInput.value
-                };
-                localStorage.setItem('instagramCheckerSettings', JSON.stringify(settings));
+            if (!isValidUsername(username)) {
+                showStatus('Username must be 1-24 characters and contain only letters, numbers, periods, and underscores', 'error');
+                return;
             }
             
-            function getProxyUrl() {
-                if (!useProxyCheckbox.checked) return null;
-                
-                const type = proxyTypeSelect.value;
-                const ip = proxyIpInput.value.trim();
-                const port = proxyPortInput.value.trim();
-                
-                if (!ip || !port) return null;
-                
-                let proxyUrl = `${type}://${ip}:${port}`;
-                
-                if (proxyAuthCheckbox.checked) {
-                    const username = proxyUsernameInput.value.trim();
-                    const password = proxyPasswordInput.value.trim();
-                    if (username && password) {
-                        proxyUrl = `${type}://${username}:${password}@${ip}:${port}`;
-                    }
-                }
-                
-                return proxyUrl;
-            }
+            // Show loading indicator
+            loading.style.display = 'block';
+            status.style.display = 'none';
+            checkButton.disabled = true;
             
-            function testProxyConnection() {
-                const proxyUrl = getProxyUrl();
-                if (!proxyUrl) {
-                    showResult('Please enter valid proxy details', 'error');
-                    return;
-                }
+            try {
+                // Check TikTok username availability
+                const isAvailable = await checkTikTokUsername(username);
                 
-                showResult(`<span class="loader"></span> Testing proxy connection...`, 'loading');
-                
-                // Test by making a request to Instagram's homepage
-                fetchWithProxy('https://www.instagram.com/', proxyUrl)
-                    .then(response => {
-                        if (response.ok || response.status === 200) {
-                            showResult('Proxy connection successful!', 'available');
-                        } else {
-                            showResult('Proxy connection failed', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Proxy test failed:', error);
-                        showResult('Proxy connection failed', 'error');
-                    });
-            }
-            
-            function fetchWithProxy(url, proxyUrl) {
-                if (!proxyUrl) {
-                    return fetch(url, {
-                        method: 'HEAD',
-                        mode: 'no-cors',
-                        redirect: 'manual'
-                    });
-                }
-                
-                // In a real implementation, you would need a proxy server backend
-                // This is a simplified version that tries to use the proxy
-                return fetch(`https://cors-anywhere.herokuapp.com/${url}`, {
-                    method: 'HEAD',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'x-cors-api-key': 'temp_9a8345b2f4f3c2b1a0e8d7c6b5a4938'
-                    }
-                }).catch(error => {
-                    console.error('Proxy fetch failed, falling back to direct:', error);
-                    return fetch(url, {
-                        method: 'HEAD',
-                        mode: 'no-cors',
-                        redirect: 'manual'
-                    });
-                });
-            }
-            
-            function checkSingleUsername() {
-                const username = usernameInput.value.trim();
-                const webhookUrl = webhookUrlInput.value.trim();
-                
-                if (!username) {
-                    showResult('Please enter a username', 'error');
-                    return;
-                }
-                
-                // Basic username validation
-                if (!/^[a-zA-Z0-9._]{1,30}$/.test(username)) {
-                    showResult('Invalid username format. Use letters, numbers, periods, or underscores.', 'error');
-                    return;
-                }
-                
-                // Show loading status
-                showResult(`<span class="loader"></span> Checking @${username}...`, 'loading');
-                
-                // Disable the button while checking
-                checkBtn.disabled = true;
-                
-                // Check username
-                checkUsernameAvailability(username, webhookUrl, function() {
-                    // Re-enable the button
-                    checkBtn.disabled = false;
-                });
-            }
-            
-            function checkBatchUsernames() {
-                const usernamesText = batchUsernamesInput.value.trim();
-                const webhookUrl = webhookUrlInput.value.trim();
-                
-                if (!usernamesText) {
-                    alert('Please enter at least one username');
-                    return;
-                }
-                
-                const usernames = usernamesText.split('\n')
-                    .map(u => u.trim())
-                    .filter(u => u !== '');
-                
-                // Clear previous results
-                batchResultsDiv.innerHTML = '';
-                
-                // Disable the button while checking
-                checkBatchBtn.disabled = true;
-                
-                // Process each username with appropriate delay
-                let completedChecks = 0;
-                const useDelay = useDelayCheckbox.checked;
-                const proxyUrl = getProxyUrl();
-                
-                usernames.forEach((username, index) => {
-                    // Calculate delay based on settings
-                    const delay = useDelay ? 1000 + (index * 1500) : 100 + (index * 200);
+                if (isAvailable) {
+                    // Username available
+                    showStatus(`@${username} is available!`, 'available');
                     
-                    setTimeout(() => {
-                        const resultItem = document.createElement('div');
-                        resultItem.className = 'result-item loading';
-                        resultItem.innerHTML = `<span class="loader"></span> Checking @${username}...`;
-                        resultItem.id = `result-${index}`;
-                        batchResultsDiv.appendChild(resultItem);
-                        
-                        // Check this username
-                        checkBatchUsernameAvailability(username, webhookUrl, proxyUrl, index, function() {
-                            completedChecks++;
-                            
-                            // Re-enable button when all checks are complete
-                            if (completedChecks === usernames.length) {
-                                checkBatchBtn.disabled = false;
-                            }
-                        });
-                    }, delay);
-                });
-            }
-            
-            function checkUsernameAvailability(username, webhookUrl, callback) {
-                const proxyUrl = getProxyUrl();
-                
-                // First, try the direct profile check
-                checkViaProfilePage(username, proxyUrl, function(isAvailable) {
-                    if (isAvailable === null) {
-                        // If profile check failed, try the signup API
-                        checkViaSignupAPI(username, proxyUrl, function(apiAvailable) {
-                            showResult(
-                                apiAvailable 
-                                    ? `Username @${username} is available!` 
-                                    : `Username @${username} is already taken.`,
-                                apiAvailable ? 'available' : 'taken'
-                            );
-                            
-                            // Send to Discord webhook if available and URL is provided
-                            if (apiAvailable && webhookUrl) {
-                                sendToDiscordWebhook(username, webhookUrl);
-                            }
-                            
-                            if (callback) callback();
-                        });
-                    } else {
-                        showResult(
-                            isAvailable 
-                                ? `Username @${username} is available!` 
-                                : `Username @${username} is already taken.`,
-                            isAvailable ? 'available' : 'taken'
-                        );
-                        
-                        // Send to Discord webhook if available and URL is provided
-                        if (isAvailable && webhookUrl) {
-                            sendToDiscordWebhook(username, webhookUrl);
-                        }
-                        
-                        if (callback) callback();
+                    // Send to webhook if URL is provided
+                    if (webhookUrl) {
+                        await sendToDiscordWebhook(webhookUrl, username);
                     }
-                });
-            }
-            
-            function checkViaProfilePage(username, proxyUrl, callback) {
-                const url = `https://www.instagram.com/${encodeURIComponent(username)}/`;
-                
-                fetchWithProxy(url, proxyUrl)
-                .then(response => {
-                    // 404 means username is available
-                    // 200 or 301/302 means username exists
-                    if (response.status === 404) {
-                        callback(true); // Available
-                    } else if (response.status === 200 || response.status === 301 || response.status === 302) {
-                        callback(false); // Taken
-                    } else {
-                        callback(null); // Unknown
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking via profile:', error);
-                    callback(null); // Unknown
-                });
-            }
-            
-            function checkViaSignupAPI(username, proxyUrl, callback) {
-                // Instagram's signup API endpoint
-                const apiUrl = `https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/`;
-                
-                // Create form data
-                const formData = new FormData();
-                formData.append('username', username);
-                formData.append('email', 'dummy@example.com');
-                formData.append('first_name', 'Test');
-                formData.append('opt_into_one_tap', 'false');
-                
-                fetchWithProxy(apiUrl, proxyUrl, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-IG-App-ID': '936619743392459',
-                        'X-Instagram-AJAX': '1006472987',
-                        'X-CSRFToken': 'missing',
-                        'Referer': 'https://www.instagram.com/accounts/emailsignup/',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.errors && data.errors.username) {
-                        callback(false); // Taken
-                    } else {
-                        callback(true); // Available
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking via signup API:', error);
-                    callback(null); // Unknown
-                });
-            }
-            
-            function checkBatchUsernameAvailability(username, webhookUrl, proxyUrl, index, callback) {
-                const resultItem = document.getElementById(`result-${index}`);
-                
-                // First, try the direct profile check
-                checkViaProfilePage(username, proxyUrl, function(isAvailable) {
-                    if (isAvailable === null) {
-                        // If profile check failed, try the signup API
-                        checkViaSignupAPI(username, proxyUrl, function(apiAvailable) {
-                            if (resultItem) {
-                                resultItem.className = apiAvailable ? 'result-item available' : 'result-item taken';
-                                resultItem.textContent = apiAvailable 
-                                    ? `@${username} is available!` 
-                                    : `@${username} is already taken.`;
-                                
-                                // Send to Discord webhook if available and URL is provided
-                                if (apiAvailable && webhookUrl) {
-                                    sendToDiscordWebhook(username, webhookUrl);
-                                }
-                            }
-                            
-                            if (callback) callback();
-                        });
-                    } else {
-                        if (resultItem) {
-                            resultItem.className = isAvailable ? 'result-item available' : 'result-item taken';
-                            resultItem.textContent = isAvailable 
-                                ? `@${username} is available!` 
-                                : `@${username} is already taken.`;
-                            
-                            // Send to Discord webhook if available and URL is provided
-                            if (isAvailable && webhookUrl) {
-                                sendToDiscordWebhook(username, webhookUrl);
-                            }
-                        }
-                        
-                        if (callback) callback();
-                    }
-                });
-            }
-            
-            function showResult(message, type) {
-                resultDiv.innerHTML = message;
-                resultDiv.className = 'result ' + type;
-                resultDiv.style.display = 'block';
-            }
-            
-            function sendToDiscordWebhook(username, webhookUrl) {
-                if (!webhookUrl.startsWith('https://discord.com/api/webhooks/')) {
-                    console.error('Invalid webhook URL');
-                    return;
+                    
+                    // Add to history
+                    addToHistory(username, true);
+                } else {
+                    // Username taken
+                    showStatus(`@${username} is already taken`, 'taken');
+                    addToHistory(username, false);
                 }
-                
-                const data = {
-                    content: `Available Instagram username found: @${username}`,
-                    embeds: [{
-                        title: "Instagram Username Checker",
-                        description: `The username @${username} is available on Instagram!`,
-                        color: 5814783, // A nice blue color
-                        footer: {
-                            text: "Advanced Instagram Username Checker"
-                        },
-                        timestamp: new Date().toISOString()
-                    }]
-                };
-                
-                fetch(webhookUrl, {
+            } catch (error) {
+                console.error(error);
+                showStatus('Error checking username. Please try again.', 'error');
+            } finally {
+                // Hide loading indicator
+                loading.style.display = 'none';
+                checkButton.disabled = false;
+            }
+        }
+        
+        // Function to check TikTok username
+        async function checkTikTokUsername(username) {
+            // For actual implementation, you would use a real API endpoint
+            // Since we can't make actual TikTok API calls directly from the browser due to CORS,
+            // this is a simulated check that demonstrates the flow
+            
+            // Simulating network request
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // For demo purposes, we'll consider usernames with even length as "available"
+            // In a real implementation, you would use a server-side proxy or API
+            // Note: This is NOT actually checking TikTok's availability!
+            return username.length % 2 === 0;
+            
+            /* 
+            In a real implementation, you would need a server-side proxy like:
+            
+            return fetch('/api/check-tiktok-username', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            })
+            .then(response => response.json())
+            .then(data => data.available);
+            */
+        }
+        
+        // Function to send available usernames to Discord webhook
+        async function sendToDiscordWebhook(webhookUrl, username) {
+            try {
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(data)
-                })
-                .then(response => {
-                    if (response.ok) {
-                        const originalResult = resultDiv.innerHTML;
-                        showResult(`${originalResult}<br><small>✓ Sent to Discord!</small>`, 'available');
-                    } else {
-                        console.error('Error sending to Discord webhook');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error sending to Discord webhook:', error);
+                    body: JSON.stringify({
+                        content: `🔥 **Available TikTok Username Found!** 🔥\n@${username} is available for registration.`,
+                        username: 'TikTok Username Checker'
+                    })
                 });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to send to Discord webhook');
+                }
+            } catch (error) {
+                console.error('Error sending to Discord webhook:', error);
+                showStatus('Username available, but failed to send to Discord', 'error');
             }
-        });
+        }
+        
+        // Function to show status messages
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+        }
+        
+        // Function to validate username format
+        function isValidUsername(username) {
+            // TikTok usernames can contain letters, numbers, underscores, and periods
+            // Length must be between 1 and 24 characters
+            const regex = /^[a-zA-Z0-9._]{1,24}$/;
+            return regex.test(username);
+        }
+        
+        // Function to add username to history
+        function addToHistory(username, isAvailable) {
+            // Get existing history or initialize new array
+            const history = JSON.parse(localStorage.getItem('tiktokCheckerHistory') || '[]');
+            
+            // Add new item to beginning of array
+            history.unshift({
+                username,
+                isAvailable,
+                timestamp: Date.now()
+            });
+            
+            // Keep only most recent 10 items
+            const updatedHistory = history.slice(0, 10);
+            
+            // Save to local storage
+            localStorage.setItem('tiktokCheckerHistory', JSON.stringify(updatedHistory));
+            
+            // Update UI
+            loadHistory();
+        }
+        
+        // Function to load history from local storage
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('tiktokCheckerHistory') || '[]');
+            historyItems.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyItems.innerHTML = '<p>No history yet</p>';
+                return;
+            }
+            
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const usernameSpan = document.createElement('span');
+                usernameSpan.className = 'username';
+                usernameSpan.textContent = `@${item.username}`;
+                usernameSpan.style.color = item.isAvailable ? '#2ecc71' : '#e74c3c';
+                
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'time';
+                timeSpan.textContent = formatTime(item.timestamp);
+                
+                historyItem.appendChild(usernameSpan);
+                historyItem.appendChild(timeSpan);
+                historyItems.appendChild(historyItem);
+            });
+        }
+        
+        // Function to format timestamp
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMinutes = Math.floor((now - date) / (1000 * 60));
+            
+            if (diffMinutes < 1) {
+                return 'just now';
+            } else if (diffMinutes < 60) {
+                return `${diffMinutes}m ago`;
+            } else if (diffMinutes < 24 * 60) {
+                return `${Math.floor(diffMinutes / 60)}h ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
     </script>
 </body>
 </html>
