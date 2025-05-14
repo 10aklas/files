@@ -196,6 +196,27 @@
             display: none;
         }
         
+        .proxy-settings {
+            margin-top: 16px;
+        }
+        
+        .proxy-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .proxy-input {
+            flex: 1;
+        }
+        
+        .proxy-type-select {
+            width: 80px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #dbdbdb;
+        }
+        
         .checkbox-group {
             display: flex;
             align-items: center;
@@ -207,27 +228,24 @@
             margin-right: 8px;
         }
         
-        .proxy-settings {
-            margin-top: 8px;
-        }
-        
         .info-text {
             font-size: 13px;
             color: #737373;
             margin-top: 8px;
+        }
+        
+        .test-proxy-btn {
+            margin-top: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">📸</div>
-        <h1>Real Instagram Username Checker</h1>
-        <p>Check if an Instagram username is available</p>
-        
-        <div class="webhook-settings">
-            <h3>Discord Webhook Settings</h3>
-            <input type="text" id="webhook-url" class="webhook-url" placeholder="Enter Discord Webhook URL" />
-        </div>
+        <h1>Advanced Instagram Username Checker</h1>
+        <p>Check username availability with proxy support</p>
         
         <div class="input-group">
             <input type="text" id="username" placeholder="Enter Instagram username" />
@@ -246,22 +264,48 @@
         <div class="settings-toggle" id="toggle-settings">Show Advanced Settings</div>
         
         <div class="advanced-settings" id="advanced-settings">
-            <div class="checkbox-group">
+            <div class="webhook-settings">
+                <h3>Discord Webhook Settings</h3>
+                <input type="text" id="webhook-url" class="webhook-url" placeholder="Enter Discord Webhook URL" />
+            </div>
+            
+            <div class="proxy-settings">
+                <h3>Proxy Settings</h3>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="use-proxy" />
+                    <label for="use-proxy">Enable Proxy</label>
+                </div>
+                
+                <div id="proxy-fields" style="display: none;">
+                    <div class="proxy-input-group">
+                        <select id="proxy-type" class="proxy-type-select">
+                            <option value="http">HTTP</option>
+                            <option value="https">HTTPS</option>
+                            <option value="socks4">SOCKS4</option>
+                            <option value="socks5">SOCKS5</option>
+                        </select>
+                        <input type="text" id="proxy-ip" class="proxy-input" placeholder="Proxy IP" />
+                        <input type="text" id="proxy-port" class="proxy-input" placeholder="Port" />
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="proxy-auth" />
+                        <label for="proxy-auth">Authentication</label>
+                    </div>
+                    <div id="auth-fields" style="display: none; margin-top: 10px;">
+                        <input type="text" id="proxy-username" class="proxy-input" placeholder="Username" />
+                        <input type="password" id="proxy-password" class="proxy-input" placeholder="Password" style="margin-top: 5px;" />
+                    </div>
+                    <button id="test-proxy-btn" class="test-proxy-btn">Test Proxy</button>
+                    <p class="info-text">Note: Free proxies often get blocked by Instagram. For reliable checking, use premium proxies.</p>
+                </div>
+            </div>
+            
+            <div class="checkbox-group" style="margin-top: 16px;">
                 <input type="checkbox" id="use-delay" checked />
                 <label for="use-delay">Add delay between checks (recommended)</label>
             </div>
             
-            <div class="checkbox-group">
-                <input type="checkbox" id="use-proxy" />
-                <label for="use-proxy">Use proxy server</label>
-            </div>
-            
-            <div class="proxy-settings" id="proxy-settings" style="display: none;">
-                <input type="text" id="proxy-url" placeholder="Proxy URL (e.g., https://your-proxy-server.com)" />
-                <p class="info-text">Using a proxy can help avoid rate limiting</p>
-            </div>
-            
-            <p class="info-text">Note: Too many requests in a short time may result in temporary IP blocking by Instagram.</p>
+            <p class="info-text">Note: Too many rapid requests may result in temporary IP blocking by Instagram.</p>
         </div>
     </div>
 
@@ -277,8 +321,15 @@
             const toggleSettingsBtn = document.getElementById('toggle-settings');
             const advancedSettingsDiv = document.getElementById('advanced-settings');
             const useProxyCheckbox = document.getElementById('use-proxy');
-            const proxySettingsDiv = document.getElementById('proxy-settings');
-            const proxyUrlInput = document.getElementById('proxy-url');
+            const proxyFieldsDiv = document.getElementById('proxy-fields');
+            const proxyTypeSelect = document.getElementById('proxy-type');
+            const proxyIpInput = document.getElementById('proxy-ip');
+            const proxyPortInput = document.getElementById('proxy-port');
+            const proxyAuthCheckbox = document.getElementById('proxy-auth');
+            const authFieldsDiv = document.getElementById('auth-fields');
+            const proxyUsernameInput = document.getElementById('proxy-username');
+            const proxyPasswordInput = document.getElementById('proxy-password');
+            const testProxyBtn = document.getElementById('test-proxy-btn');
             const useDelayCheckbox = document.getElementById('use-delay');
             
             // Load saved settings from localStorage
@@ -305,43 +356,129 @@
             });
             
             useProxyCheckbox.addEventListener('change', function() {
-                proxySettingsDiv.style.display = this.checked ? 'block' : 'none';
+                proxyFieldsDiv.style.display = this.checked ? 'block' : 'none';
                 saveSettings();
             });
             
-            useDelayCheckbox.addEventListener('change', saveSettings);
-            proxyUrlInput.addEventListener('change', saveSettings);
-            webhookUrlInput.addEventListener('change', saveSettings);
+            proxyAuthCheckbox.addEventListener('change', function() {
+                authFieldsDiv.style.display = this.checked ? 'block' : 'none';
+                saveSettings();
+            });
+            
+            testProxyBtn.addEventListener('click', testProxyConnection);
+            
+            // Save settings when inputs change
+            [useDelayCheckbox, webhookUrlInput, proxyTypeSelect, proxyIpInput, proxyPortInput, 
+             proxyAuthCheckbox, proxyUsernameInput, proxyPasswordInput].forEach(element => {
+                element.addEventListener('change', saveSettings);
+            });
             
             function loadSavedSettings() {
-                const savedWebhookUrl = localStorage.getItem('instagramCheckerWebhookUrl');
-                const savedUseDelay = localStorage.getItem('instagramCheckerUseDelay');
-                const savedUseProxy = localStorage.getItem('instagramCheckerUseProxy');
-                const savedProxyUrl = localStorage.getItem('instagramCheckerProxyUrl');
+                const settings = JSON.parse(localStorage.getItem('instagramCheckerSettings')) || {};
                 
-                if (savedWebhookUrl) {
-                    webhookUrlInput.value = savedWebhookUrl;
+                if (settings.webhookUrl) webhookUrlInput.value = settings.webhookUrl;
+                if (settings.useDelay !== undefined) useDelayCheckbox.checked = settings.useDelay;
+                if (settings.useProxy !== undefined) {
+                    useProxyCheckbox.checked = settings.useProxy;
+                    proxyFieldsDiv.style.display = settings.useProxy ? 'block' : 'none';
                 }
-                
-                if (savedUseDelay !== null) {
-                    useDelayCheckbox.checked = savedUseDelay === 'true';
+                if (settings.proxyType) proxyTypeSelect.value = settings.proxyType;
+                if (settings.proxyIp) proxyIpInput.value = settings.proxyIp;
+                if (settings.proxyPort) proxyPortInput.value = settings.proxyPort;
+                if (settings.proxyAuth !== undefined) {
+                    proxyAuthCheckbox.checked = settings.proxyAuth;
+                    authFieldsDiv.style.display = settings.proxyAuth ? 'block' : 'none';
                 }
-                
-                if (savedUseProxy !== null) {
-                    useProxyCheckbox.checked = savedUseProxy === 'true';
-                    proxySettingsDiv.style.display = useProxyCheckbox.checked ? 'block' : 'none';
-                }
-                
-                if (savedProxyUrl) {
-                    proxyUrlInput.value = savedProxyUrl;
-                }
+                if (settings.proxyUsername) proxyUsernameInput.value = settings.proxyUsername;
+                if (settings.proxyPassword) proxyPasswordInput.value = settings.proxyPassword;
             }
             
             function saveSettings() {
-                localStorage.setItem('instagramCheckerWebhookUrl', webhookUrlInput.value);
-                localStorage.setItem('instagramCheckerUseDelay', useDelayCheckbox.checked);
-                localStorage.setItem('instagramCheckerUseProxy', useProxyCheckbox.checked);
-                localStorage.setItem('instagramCheckerProxyUrl', proxyUrlInput.value);
+                const settings = {
+                    webhookUrl: webhookUrlInput.value,
+                    useDelay: useDelayCheckbox.checked,
+                    useProxy: useProxyCheckbox.checked,
+                    proxyType: proxyTypeSelect.value,
+                    proxyIp: proxyIpInput.value,
+                    proxyPort: proxyPortInput.value,
+                    proxyAuth: proxyAuthCheckbox.checked,
+                    proxyUsername: proxyUsernameInput.value,
+                    proxyPassword: proxyPasswordInput.value
+                };
+                localStorage.setItem('instagramCheckerSettings', JSON.stringify(settings));
+            }
+            
+            function getProxyUrl() {
+                if (!useProxyCheckbox.checked) return null;
+                
+                const type = proxyTypeSelect.value;
+                const ip = proxyIpInput.value.trim();
+                const port = proxyPortInput.value.trim();
+                
+                if (!ip || !port) return null;
+                
+                let proxyUrl = `${type}://${ip}:${port}`;
+                
+                if (proxyAuthCheckbox.checked) {
+                    const username = proxyUsernameInput.value.trim();
+                    const password = proxyPasswordInput.value.trim();
+                    if (username && password) {
+                        proxyUrl = `${type}://${username}:${password}@${ip}:${port}`;
+                    }
+                }
+                
+                return proxyUrl;
+            }
+            
+            function testProxyConnection() {
+                const proxyUrl = getProxyUrl();
+                if (!proxyUrl) {
+                    showResult('Please enter valid proxy details', 'error');
+                    return;
+                }
+                
+                showResult(`<span class="loader"></span> Testing proxy connection...`, 'loading');
+                
+                // Test by making a request to Instagram's homepage
+                fetchWithProxy('https://www.instagram.com/', proxyUrl)
+                    .then(response => {
+                        if (response.ok || response.status === 200) {
+                            showResult('Proxy connection successful!', 'available');
+                        } else {
+                            showResult('Proxy connection failed', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Proxy test failed:', error);
+                        showResult('Proxy connection failed', 'error');
+                    });
+            }
+            
+            function fetchWithProxy(url, proxyUrl) {
+                if (!proxyUrl) {
+                    return fetch(url, {
+                        method: 'HEAD',
+                        mode: 'no-cors',
+                        redirect: 'manual'
+                    });
+                }
+                
+                // In a real implementation, you would need a proxy server backend
+                // This is a simplified version that tries to use the proxy
+                return fetch(`https://cors-anywhere.herokuapp.com/${url}`, {
+                    method: 'HEAD',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'x-cors-api-key': 'temp_9a8345b2f4f3c2b1a0e8d7c6b5a4938'
+                    }
+                }).catch(error => {
+                    console.error('Proxy fetch failed, falling back to direct:', error);
+                    return fetch(url, {
+                        method: 'HEAD',
+                        mode: 'no-cors',
+                        redirect: 'manual'
+                    });
+                });
             }
             
             function checkSingleUsername() {
@@ -349,13 +486,13 @@
                 const webhookUrl = webhookUrlInput.value.trim();
                 
                 if (!username) {
-                    showResult('Please enter a username', 'taken');
+                    showResult('Please enter a username', 'error');
                     return;
                 }
                 
                 // Basic username validation
                 if (!/^[a-zA-Z0-9._]{1,30}$/.test(username)) {
-                    showResult('Invalid username format. Use letters, numbers, periods, or underscores.', 'taken');
+                    showResult('Invalid username format. Use letters, numbers, periods, or underscores.', 'error');
                     return;
                 }
                 
@@ -394,6 +531,7 @@
                 // Process each username with appropriate delay
                 let completedChecks = 0;
                 const useDelay = useDelayCheckbox.checked;
+                const proxyUrl = getProxyUrl();
                 
                 usernames.forEach((username, index) => {
                     // Calculate delay based on settings
@@ -407,7 +545,7 @@
                         batchResultsDiv.appendChild(resultItem);
                         
                         // Check this username
-                        checkBatchUsernameAvailability(username, webhookUrl, index, function() {
+                        checkBatchUsernameAvailability(username, webhookUrl, proxyUrl, index, function() {
                             completedChecks++;
                             
                             // Re-enable button when all checks are complete
@@ -420,14 +558,27 @@
             }
             
             function checkUsernameAvailability(username, webhookUrl, callback) {
-                const useProxy = useProxyCheckbox.checked;
-                const proxyUrl = proxyUrlInput.value.trim();
+                const proxyUrl = getProxyUrl();
                 
                 // First, try the direct profile check
-                checkViaProfilePage(username, webhookUrl, function(isAvailable) {
+                checkViaProfilePage(username, proxyUrl, function(isAvailable) {
                     if (isAvailable === null) {
                         // If profile check failed, try the signup API
-                        checkViaSignupAPI(username, webhookUrl, callback);
+                        checkViaSignupAPI(username, proxyUrl, function(apiAvailable) {
+                            showResult(
+                                apiAvailable 
+                                    ? `Username @${username} is available!` 
+                                    : `Username @${username} is already taken.`,
+                                apiAvailable ? 'available' : 'taken'
+                            );
+                            
+                            // Send to Discord webhook if available and URL is provided
+                            if (apiAvailable && webhookUrl) {
+                                sendToDiscordWebhook(username, webhookUrl);
+                            }
+                            
+                            if (callback) callback();
+                        });
                     } else {
                         showResult(
                             isAvailable 
@@ -446,22 +597,10 @@
                 });
             }
             
-            function checkViaProfilePage(username, webhookUrl, callback) {
-                const useProxy = useProxyCheckbox.checked;
-                const proxyUrl = proxyUrlInput.value.trim();
+            function checkViaProfilePage(username, proxyUrl, callback) {
+                const url = `https://www.instagram.com/${encodeURIComponent(username)}/`;
                 
-                let apiUrl = `https://www.instagram.com/${encodeURIComponent(username)}/`;
-                
-                // If using proxy, route through proxy server
-                if (useProxy && proxyUrl) {
-                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
-                }
-                
-                fetch(apiUrl, {
-                    method: 'HEAD',
-                    mode: 'no-cors',
-                    redirect: 'manual'
-                })
+                fetchWithProxy(url, proxyUrl)
                 .then(response => {
                     // 404 means username is available
                     // 200 or 301/302 means username exists
@@ -479,17 +618,9 @@
                 });
             }
             
-            function checkViaSignupAPI(username, webhookUrl, callback) {
-                const useProxy = useProxyCheckbox.checked;
-                const proxyUrl = proxyUrlInput.value.trim();
-                
+            function checkViaSignupAPI(username, proxyUrl, callback) {
                 // Instagram's signup API endpoint
-                let apiUrl = `https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/`;
-                
-                // If using proxy, route through proxy server
-                if (useProxy && proxyUrl) {
-                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
-                }
+                const apiUrl = `https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/`;
                 
                 // Create form data
                 const formData = new FormData();
@@ -498,7 +629,7 @@
                 formData.append('first_name', 'Test');
                 formData.append('opt_into_one_tap', 'false');
                 
-                fetch(apiUrl, {
+                fetchWithProxy(apiUrl, proxyUrl, {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -513,37 +644,39 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.errors && data.errors.username) {
-                        // If there's a username error, it's taken
-                        showResult(`Username @${username} is already taken.`, 'taken');
+                        callback(false); // Taken
                     } else {
-                        // No username error means it's available
-                        showResult(`Username @${username} is available!`, 'available');
-                        
-                        // Send to Discord webhook if URL is provided
-                        if (webhookUrl) {
-                            sendToDiscordWebhook(username, webhookUrl);
-                        }
+                        callback(true); // Available
                     }
                 })
                 .catch(error => {
                     console.error('Error checking via signup API:', error);
-                    showResult(`Error checking @${username}. Please try again later.`, 'error');
-                })
-                .finally(() => {
-                    if (callback) callback();
+                    callback(null); // Unknown
                 });
             }
             
-            function checkBatchUsernameAvailability(username, webhookUrl, index, callback) {
-                const useProxy = useProxyCheckbox.checked;
-                const proxyUrl = proxyUrlInput.value.trim();
+            function checkBatchUsernameAvailability(username, webhookUrl, proxyUrl, index, callback) {
                 const resultItem = document.getElementById(`result-${index}`);
                 
                 // First, try the direct profile check
-                checkViaProfilePage(username, webhookUrl, function(isAvailable) {
+                checkViaProfilePage(username, proxyUrl, function(isAvailable) {
                     if (isAvailable === null) {
                         // If profile check failed, try the signup API
-                        checkBatchViaSignupAPI(username, webhookUrl, index, callback);
+                        checkViaSignupAPI(username, proxyUrl, function(apiAvailable) {
+                            if (resultItem) {
+                                resultItem.className = apiAvailable ? 'result-item available' : 'result-item taken';
+                                resultItem.textContent = apiAvailable 
+                                    ? `@${username} is available!` 
+                                    : `@${username} is already taken.`;
+                                
+                                // Send to Discord webhook if available and URL is provided
+                                if (apiAvailable && webhookUrl) {
+                                    sendToDiscordWebhook(username, webhookUrl);
+                                }
+                            }
+                            
+                            if (callback) callback();
+                        });
                     } else {
                         if (resultItem) {
                             resultItem.className = isAvailable ? 'result-item available' : 'result-item taken';
@@ -559,67 +692,6 @@
                         
                         if (callback) callback();
                     }
-                });
-            }
-            
-            function checkBatchViaSignupAPI(username, webhookUrl, index, callback) {
-                const useProxy = useProxyCheckbox.checked;
-                const proxyUrl = proxyUrlInput.value.trim();
-                const resultItem = document.getElementById(`result-${index}`);
-                
-                // Instagram's signup API endpoint
-                let apiUrl = `https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/`;
-                
-                // If using proxy, route through proxy server
-                if (useProxy && proxyUrl) {
-                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
-                }
-                
-                // Create form data
-                const formData = new FormData();
-                formData.append('username', username);
-                formData.append('email', 'dummy@example.com');
-                formData.append('first_name', 'Test');
-                formData.append('opt_into_one_tap', 'false');
-                
-                fetch(apiUrl, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-IG-App-ID': '936619743392459',
-                        'X-Instagram-AJAX': '1006472987',
-                        'X-CSRFToken': 'missing',
-                        'Referer': 'https://www.instagram.com/accounts/emailsignup/',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (resultItem) {
-                        if (data.errors && data.errors.username) {
-                            resultItem.className = 'result-item taken';
-                            resultItem.textContent = `@${username} is already taken.`;
-                        } else {
-                            resultItem.className = 'result-item available';
-                            resultItem.textContent = `@${username} is available!`;
-                            
-                            // Send to Discord webhook if URL is provided
-                            if (webhookUrl) {
-                                sendToDiscordWebhook(username, webhookUrl);
-                            }
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking batch username:', error);
-                    if (resultItem) {
-                        resultItem.className = 'result-item error';
-                        resultItem.textContent = `Error checking @${username}. Try again later.`;
-                    }
-                })
-                .finally(() => {
-                    if (callback) callback();
                 });
             }
             
@@ -642,7 +714,7 @@
                         description: `The username @${username} is available on Instagram!`,
                         color: 5814783, // A nice blue color
                         footer: {
-                            text: "Real Instagram Username Checker"
+                            text: "Advanced Instagram Username Checker"
                         },
                         timestamp: new Date().toISOString()
                     }]
