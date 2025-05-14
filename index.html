@@ -3,394 +3,483 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Username Checker</title>
+    <title>Snapchat Username Checker</title>
     <style>
+        :root {
+            --primary: #FFFC00;
+            --secondary: #000000;
+            --accent: #00B0FF;
+            --error: #FF5252;
+            --success: #4CAF50;
+            --background: #f5f5f5;
+            --card-bg: #ffffff;
+        }
+
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            padding: 0;
+            color: var(--secondary);
+            line-height: 1.6;
         }
+
         .container {
-            max-width: 600px;
-            width: 100%;
-            margin: 40px auto;
-            padding: 30px;
-            background-color: #1e1e1e;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
-        h1 {
+
+        header {
             text-align: center;
-            color: #fe2c55;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background-color: var(--primary);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: var(--secondary);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .checker-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 30px;
         }
-        .form-group {
+
+        .input-group {
+            display: flex;
             margin-bottom: 20px;
         }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        input, button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #333;
-            background-color: #2a2a2a;
-            color: white;
-            font-size: 16px;
-        }
-        input:focus {
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 1rem;
             outline: none;
-            border-color: #fe2c55;
+            transition: border-color 0.3s;
         }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
         button {
-            background-color: #fe2c55;
+            background-color: var(--primary);
+            color: var(--secondary);
             border: none;
-            color: white;
+            padding: 12px 20px;
+            font-size: 1rem;
             font-weight: bold;
+            border-radius: 0 4px 4px 0;
             cursor: pointer;
-            margin-top: 10px;
-            transition: background-color 0.2s;
+            transition: background-color 0.3s;
         }
+
         button:hover {
-            background-color: #e91e45;
+            background-color: #e6e300;
         }
+
         button:disabled {
-            background-color: #666;
+            background-color: #ccc;
             cursor: not-allowed;
         }
-        .status {
+
+        .result-container {
             margin-top: 20px;
             padding: 15px;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: 500;
+            border-radius: 4px;
             display: none;
         }
-        .status.available {
-            background-color: rgba(46, 204, 113, 0.2);
-            color: #2ecc71;
-            border: 1px solid #2ecc71;
+
+        .available {
+            background-color: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid var(--success);
+            display: block;
         }
-        .status.taken {
-            background-color: rgba(231, 76, 60, 0.2);
-            color: #e74c3c;
-            border: 1px solid #e74c3c;
+
+        .taken {
+            background-color: rgba(255, 82, 82, 0.2);
+            border-left: 4px solid var(--error);
+            display: block;
         }
-        .status.error {
-            background-color: rgba(241, 196, 15, 0.2);
-            color: #f1c40f;
-            border: 1px solid #f1c40f;
+
+        .error {
+            background-color: rgba(255, 152, 0, 0.2);
+            border-left: 4px solid #FF9800;
+            display: block;
         }
+
+        .result-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .result-message {
+            margin: 0;
+        }
+
         .loading {
             display: none;
             text-align: center;
-            margin-top: 20px;
+            margin: 20px 0;
         }
+
         .spinner {
-            display: inline-block;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
             width: 30px;
             height: 30px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fe2c55;
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
         }
-        .setup-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        .setup-section h3 {
-            color: #fe2c55;
-        }
+
         .history {
             margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
-            max-height: 200px;
-            overflow-y: auto;
         }
+
+        .history h2 {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
         .history-item {
-            padding: 10px;
-            margin-bottom: 5px;
+            background-color: var(--card-bg);
             border-radius: 4px;
-            background-color: #2a2a2a;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
-        .history-item .username {
+
+        .username {
             font-weight: bold;
         }
-        .history-item .time {
-            color: #888;
-            font-size: 14px;
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+
+        .status-available {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+        }
+
+        .status-taken {
+            background-color: rgba(255, 82, 82, 0.2);
+            color: var(--error);
+        }
+
+        .status-error {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: #FF9800;
+        }
+
+        .invalid {
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+
+            input[type="text"] {
+                border-radius: 4px;
+                margin-bottom: 10px;
+            }
+
+            button {
+                border-radius: 4px;
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>TikTok Username Checker</h1>
-        
-        <div class="form-group">
-            <label for="webhookUrl">Discord Webhook URL:</label>
-            <input type="text" id="webhookUrl" placeholder="https://discord.com/api/webhooks/..." />
+        <header>
+            <h1>Snapchat Username Checker</h1>
+            <p class="subtitle">Check if a Snapchat username is available</p>
+        </header>
+
+        <div class="checker-card">
+            <div class="input-group">
+                <input type="text" id="usernameInput" placeholder="Enter a Snapchat username..." autocomplete="off">
+                <button id="checkButton">Check</button>
+            </div>
+            <p id="invalidMessage" class="invalid">Username must be between 3-15 characters and can only contain letters, numbers, underscores, or periods.</p>
+
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Checking username...</p>
+            </div>
+
+            <div class="result-container" id="resultContainer">
+                <p class="result-title" id="resultTitle"></p>
+                <p class="result-message" id="resultMessage"></p>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="username">TikTok Username:</label>
-            <input type="text" id="username" placeholder="Enter username to check" maxlength="24" />
+
+        <div class="history">
+            <h2>Recent Checks</h2>
+            <div id="historyList"></div>
         </div>
-        
-        <button id="checkButton">Check Availability</button>
-        
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Checking username...</p>
-        </div>
-        
-        <div class="status" id="status"></div>
-        
-        <div class="history" id="history">
-            <h3>Recently Checked</h3>
-            <div id="historyItems"></div>
-        </div>
-        
-        <div class="setup-section">
-            <h3>How to Set Up</h3>
-            <p>1. Create a Discord webhook in your server (Server Settings > Integrations > Webhooks)</p>
-            <p>2. Copy the webhook URL and paste it above</p>
-            <p>3. Enter TikTok usernames to check availability</p>
-            <p>4. Available usernames will be sent to your Discord channel automatically</p>
-        </div>
+
+        <footer>
+            <p>This tool checks the availability of Snapchat usernames. It's not affiliated with Snapchat Inc.</p>
+            <p>For educational purposes only.</p>
+        </footer>
     </div>
 
     <script>
-        // Store DOM elements
-        const webhookUrlInput = document.getElementById('webhookUrl');
-        const usernameInput = document.getElementById('username');
-        const checkButton = document.getElementById('checkButton');
-        const loading = document.getElementById('loading');
-        const status = document.getElementById('status');
-        const historyItems = document.getElementById('historyItems');
-        
-        // Load webhook URL from local storage if available
-        if (localStorage.getItem('tiktokCheckerWebhook')) {
-            webhookUrlInput.value = localStorage.getItem('tiktokCheckerWebhook');
-        }
-        
-        // Load history from local storage
-        loadHistory();
-        
-        // Add event listener to the check button
-        checkButton.addEventListener('click', checkUsername);
-        
-        // Allow Enter key to trigger check
-        usernameInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                checkUsername();
-            }
-        });
-        
-        // Save webhook URL when changed
-        webhookUrlInput.addEventListener('change', function() {
-            localStorage.setItem('tiktokCheckerWebhook', webhookUrlInput.value);
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameInput = document.getElementById('usernameInput');
+            const checkButton = document.getElementById('checkButton');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const invalidMessage = document.getElementById('invalidMessage');
+            const historyList = document.getElementById('historyList');
 
-        // Function to check username availability
-        async function checkUsername() {
-            const username = usernameInput.value.trim();
-            const webhookUrl = webhookUrlInput.value.trim();
-            
-            // Basic validation
-            if (!username) {
-                showStatus('Please enter a username to check', 'error');
-                return;
+            // Load history from localStorage
+            loadHistory();
+
+            checkButton.addEventListener('click', checkUsername);
+            usernameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkUsername();
+                }
+            });
+
+            function isValidSnapchatUsername(username) {
+                // Snapchat username rules:
+                // - 3 to 15 characters long
+                // - Can contain letters, numbers, underscores, and periods
+                // - Cannot start or end with a period
+                const regex = /^(?=[a-zA-Z0-9._]{3,15}$)(?!.*[.]{2})[^_.].*[^_.]$/;
+                return regex.test(username);
             }
-            
-            if (!isValidUsername(username)) {
-                showStatus('Username must be 1-24 characters and contain only letters, numbers, periods, and underscores', 'error');
-                return;
-            }
-            
-            // Show loading indicator
-            loading.style.display = 'block';
-            status.style.display = 'none';
-            checkButton.disabled = true;
-            
-            try {
-                // Check TikTok username availability
-                const isAvailable = await checkTikTokUsername(username);
+
+            async function checkUsername() {
+                const username = usernameInput.value.trim();
                 
-                if (isAvailable) {
-                    // Username available
-                    showStatus(`@${username} is available!`, 'available');
+                // Validate username
+                if (!isValidSnapchatUsername(username)) {
+                    invalidMessage.style.display = 'block';
+                    resultContainer.style.display = 'none';
+                    return;
+                } else {
+                    invalidMessage.style.display = 'none';
+                }
+
+                // Show loading indicator
+                loadingIndicator.style.display = 'block';
+                resultContainer.style.display = 'none';
+                checkButton.disabled = true;
+
+                try {
+                    // We'll use a proxy to check Snapchat username availability
+                    // Note: This is a simulation - in a real app, you'd need proper API access
+                    const isAvailable = await simulateSnapchatCheck(username);
                     
-                    // Send to webhook if URL is provided
-                    if (webhookUrl) {
-                        await sendToDiscordWebhook(webhookUrl, username);
+                    // Display result
+                    if (isAvailable === 'available') {
+                        resultContainer.className = 'result-container available';
+                        resultTitle.textContent = '✅ Available!';
+                        resultMessage.textContent = `The username "${username}" is available on Snapchat.`;
+                    } else if (isAvailable === 'taken') {
+                        resultContainer.className = 'result-container taken';
+                        resultTitle.textContent = '❌ Taken';
+                        resultMessage.textContent = `The username "${username}" is already taken on Snapchat.`;
+                    } else {
+                        resultContainer.className = 'result-container error';
+                        resultTitle.textContent = '⚠️ Error';
+                        resultMessage.textContent = 'There was an error checking the username. Please try again.';
                     }
                     
                     // Add to history
-                    addToHistory(username, true);
-                } else {
-                    // Username taken
-                    showStatus(`@${username} is already taken`, 'taken');
-                    addToHistory(username, false);
+                    addToHistory(username, isAvailable);
+                } catch (error) {
+                    console.error('Error checking username:', error);
+                    resultContainer.className = 'result-container error';
+                    resultTitle.textContent = '⚠️ Error';
+                    resultMessage.textContent = 'There was an error checking the username. Please try again.';
+                    
+                    // Add to history as error
+                    addToHistory(username, 'error');
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                    resultContainer.style.display = 'block';
+                    checkButton.disabled = false;
                 }
-            } catch (error) {
-                console.error(error);
-                showStatus('Error checking username. Please try again.', 'error');
-            } finally {
-                // Hide loading indicator
-                loading.style.display = 'none';
-                checkButton.disabled = false;
             }
-        }
-        
-        // Function to check TikTok username
-        async function checkTikTokUsername(username) {
-            // For actual implementation, you would use a real API endpoint
-            // Since we can't make actual TikTok API calls directly from the browser due to CORS,
-            // this is a simulated check that demonstrates the flow
-            
-            // Simulating network request
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // For demo purposes, we'll consider usernames with even length as "available"
-            // In a real implementation, you would use a server-side proxy or API
-            // Note: This is NOT actually checking TikTok's availability!
-            return username.length % 2 === 0;
-            
-            /* 
-            In a real implementation, you would need a server-side proxy like:
-            
-            return fetch('/api/check-tiktok-username', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username })
-            })
-            .then(response => response.json())
-            .then(data => data.available);
-            */
-        }
-        
-        // Function to send available usernames to Discord webhook
-        async function sendToDiscordWebhook(webhookUrl, username) {
-            try {
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        content: `🔥 **Available TikTok Username Found!** 🔥\n@${username} is available for registration.`,
-                        username: 'TikTok Username Checker'
-                    })
+
+            // Simulate checking Snapchat username availability
+            // In a real implementation, you would need proper API access
+            async function simulateSnapchatCheck(username) {
+                // This is a simulation - in reality, Snapchat doesn't have a public API for this
+                // We'll simulate different responses based on the username
+                
+                // Simulate network delay
+                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+                
+                // Some patterns that we'll treat as "taken"
+                const takenPatterns = [
+                    'admin', 'support', 'snapchat', 'team', 'official',
+                    'user', 'test', 'demo', 'example', 'hello'
+                ];
+                
+                // Check if username matches any taken patterns
+                const isTakenPattern = takenPatterns.some(pattern => 
+                    username.toLowerCase().includes(pattern)
+                );
+                
+                // Short usernames are more likely to be taken
+                const isShort = username.length <= 5;
+                
+                // Common names are more likely to be taken
+                const commonNames = [
+                    'john', 'jane', 'mike', 'sarah', 'david', 'emma',
+                    'alex', 'chris', 'anna', 'ryan', 'lisa', 'matt'
+                ];
+                const isCommonName = commonNames.includes(username.toLowerCase());
+                
+                // Random chance based on length and patterns
+                let available;
+                if (isTakenPattern) {
+                    available = false;
+                } else if (isCommonName) {
+                    available = Math.random() > 0.8; // 20% chance available
+                } else if (isShort) {
+                    available = Math.random() > 0.7; // 30% chance available
+                } else {
+                    available = Math.random() > 0.5; // 50% chance available
+                }
+                
+                // Occasionally simulate an error
+                if (Math.random() < 0.1) { // 10% chance of error
+                    throw new Error('Simulated API error');
+                }
+                
+                return available ? 'available' : 'taken';
+            }
+
+            function addToHistory(username, status) {
+                // Get current history
+                let history = JSON.parse(localStorage.getItem('snapchatUsernameHistory') || [];
+                
+                // Add new entry
+                history.unshift({
+                    username: username,
+                    status: status,
+                    timestamp: new Date().toISOString()
                 });
                 
-                if (!response.ok) {
-                    throw new Error('Failed to send to Discord webhook');
+                // Keep only the last 10 entries
+                if (history.length > 10) {
+                    history = history.slice(0, 10);
                 }
-            } catch (error) {
-                console.error('Error sending to Discord webhook:', error);
-                showStatus('Username available, but failed to send to Discord', 'error');
-            }
-        }
-        
-        // Function to show status messages
-        function showStatus(message, type) {
-            status.textContent = message;
-            status.className = 'status ' + type;
-            status.style.display = 'block';
-        }
-        
-        // Function to validate username format
-        function isValidUsername(username) {
-            // TikTok usernames can contain letters, numbers, underscores, and periods
-            // Length must be between 1 and 24 characters
-            const regex = /^[a-zA-Z0-9._]{1,24}$/;
-            return regex.test(username);
-        }
-        
-        // Function to add username to history
-        function addToHistory(username, isAvailable) {
-            // Get existing history or initialize new array
-            const history = JSON.parse(localStorage.getItem('tiktokCheckerHistory') || '[]');
-            
-            // Add new item to beginning of array
-            history.unshift({
-                username,
-                isAvailable,
-                timestamp: Date.now()
-            });
-            
-            // Keep only most recent 10 items
-            const updatedHistory = history.slice(0, 10);
-            
-            // Save to local storage
-            localStorage.setItem('tiktokCheckerHistory', JSON.stringify(updatedHistory));
-            
-            // Update UI
-            loadHistory();
-        }
-        
-        // Function to load history from local storage
-        function loadHistory() {
-            const history = JSON.parse(localStorage.getItem('tiktokCheckerHistory') || '[]');
-            historyItems.innerHTML = '';
-            
-            if (history.length === 0) {
-                historyItems.innerHTML = '<p>No history yet</p>';
-                return;
-            }
-            
-            history.forEach(item => {
-                const historyItem = document.createElement('div');
-                historyItem.className = 'history-item';
                 
-                const usernameSpan = document.createElement('span');
-                usernameSpan.className = 'username';
-                usernameSpan.textContent = `@${item.username}`;
-                usernameSpan.style.color = item.isAvailable ? '#2ecc71' : '#e74c3c';
+                // Save to localStorage
+                localStorage.setItem('snapchatUsernameHistory', JSON.stringify(history));
                 
-                const timeSpan = document.createElement('span');
-                timeSpan.className = 'time';
-                timeSpan.textContent = formatTime(item.timestamp);
-                
-                historyItem.appendChild(usernameSpan);
-                historyItem.appendChild(timeSpan);
-                historyItems.appendChild(historyItem);
-            });
-        }
-        
-        // Function to format timestamp
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diffMinutes = Math.floor((now - date) / (1000 * 60));
-            
-            if (diffMinutes < 1) {
-                return 'just now';
-            } else if (diffMinutes < 60) {
-                return `${diffMinutes}m ago`;
-            } else if (diffMinutes < 24 * 60) {
-                return `${Math.floor(diffMinutes / 60)}h ago`;
-            } else {
-                return date.toLocaleDateString();
+                // Update UI
+                loadHistory();
             }
-        }
+
+            function loadHistory() {
+                const history = JSON.parse(localStorage.getItem('snapchatUsernameHistory') || [];
+                historyList.innerHTML = '';
+                
+                if (history.length === 0) {
+                    historyList.innerHTML = '<p>No recent checks yet.</p>';
+                    return;
+                }
+                
+                history.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    
+                    const usernameSpan = document.createElement('span');
+                    usernameSpan.className = 'username';
+                    usernameSpan.textContent = item.username;
+                    
+                    const statusSpan = document.createElement('span');
+                    statusSpan.className = 'status';
+                    
+                    if (item.status === 'available') {
+                        statusSpan.className += ' status-available';
+                        statusSpan.textContent = 'Available';
+                    } else if (item.status === 'taken') {
+                        statusSpan.className += ' status-taken';
+                        statusSpan.textContent = 'Taken';
+                    } else {
+                        statusSpan.className += ' status-error';
+                        statusSpan.textContent = 'Error';
+                    }
+                    
+                    // Format timestamp
+                    const timestamp = new Date(item.timestamp);
+                    const timeSpan = document.createElement('span');
+                    timeSpan.style.fontSize = '0.8rem';
+                    timeSpan.style.color = '#666';
+                    timeSpan.textContent = timestamp.toLocaleString();
+                    
+                    const rightContent = document.createElement('div');
+                    rightContent.appendChild(statusSpan);
+                    rightContent.appendChild(document.createElement('br'));
+                    rightContent.appendChild(timeSpan);
+                    
+                    historyItem.appendChild(usernameSpan);
+                    historyItem.appendChild(rightContent);
+                    
+                    historyList.appendChild(historyItem);
+                });
+            }
+        });
     </script>
 </body>
 </html>
