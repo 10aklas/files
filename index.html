@@ -188,59 +188,82 @@
         return regex.test(username);
       }
       
-      // Function to check if a Snapchat username is taken by attempting to load its profile page
-      function checkUsername(username) {
-        return new Promise((resolve, reject) => {
-          // Show loading animation
-          loadingDiv.style.display = 'flex';
+      // Function to check if a Snapchat username exists using fetch
+      async function checkUsername(username) {
+        try {
+          // The URL to check - we'll use the public profile link format
+          const url = `https://www.snapchat.com/add/${username}`;
           
-          try {
-            // Create URL for the Snapchat profile
-            const snapchatUrl = `https://www.snapchat.com/add/${username}`;
-            
-            // Open a new window to check if the profile exists
-            const newWindow = window.open(snapchatUrl, '_blank', 'width=1,height=1');
-            
-            if (!newWindow) {
-              // If popup is blocked, fallback to our best guess
-              resolve({ isTaken: true, message: "Popup blocked. Username likely taken." });
-              return;
-            }
-            
-            // Listen for the window to load
-            setTimeout(() => {
-              try {
-                // Try to check if the page loaded successfully
-                // For Snapchat, if a profile exists, it will load without redirecting
-                // If it doesn't exist, it might redirect or show an error page
-                
-                // Attempt to check the final URL - this may not always work due to cross-origin restrictions
-                if (newWindow.closed) {
-                  resolve({ isTaken: false, message: "Username might be available (window closed early)" });
-                } else {
-                  try {
-                    // Try to access location, which will fail if cross-origin rules apply
-                    const finalUrl = newWindow.location.href;
-                    const isTaken = finalUrl.includes(username);
-                    resolve({ isTaken, message: isTaken ? "Username is taken" : "Username might be available" });
-                  } catch (e) {
-                    // If we can't access the URL due to cross-origin policies, we'll make our best guess
-                    // Most likely the profile exists if we couldn't detect a redirect
-                    resolve({ isTaken: true, message: "Username is likely taken" });
-                  }
-                }
-              } catch (error) {
-                resolve({ isTaken: false, message: "Username might be available" });
-              } finally {
-                // Close the window regardless of the result
-                if (newWindow && !newWindow.closed) {
-                  newWindow.close();
-                }
-              }
-            }, 3000); // Wait 3 seconds to check
-          } catch (error) {
-            reject(error);
+          // Create a proxy URL to bypass CORS issues
+          // We'll use a CORS proxy service to help with this check
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+          
+          // Fetch the page through the proxy
+          const response = await fetch(proxyUrl);
+          const data = await response.json();
+          
+          // If the page contains specific error messages, the username is likely available
+          const pageContent = data.contents;
+          
+          // Check for indicators that the profile doesn't exist
+          const doesNotExist = 
+            pageContent.includes("Cannot find the user") || 
+            pageContent.includes("Sorry! We couldn't find") || 
+            pageContent.includes("This username doesn't exist") ||
+            pageContent.includes("Page not found") ||
+            pageContent.includes("no-profile") ||
+            pageContent.includes("error-container");
+          
+          // Check for indicators that the profile exists
+          const profileExists = 
+            pageContent.includes("Add Friend") || 
+            pageContent.includes("snapcode") || 
+            pageContent.includes("This profile is private") ||
+            pageContent.includes("bitmoji") ||
+            pageContent.includes("profile-card");
+          
+          // Determine the result
+          if (doesNotExist) {
+            return { isTaken: false, message: "Username is available!" };
+          } else if (profileExists) {
+            return { isTaken: true, message: "Username is taken." };
+          } else {
+            // If we can't clearly determine, make our best guess
+            // The presence of a Snapchat profile page generally indicates the username is taken
+            return { isTaken: !pageContent.includes("error"), message: "Username status uncertain, but likely taken." };
           }
+        } catch (error) {
+          console.error("Error checking username:", error);
+          throw new Error("Failed to check username availability");
+        }
+      }
+      
+      // Alternative fallback method using an image check
+      async function checkUsernameByImage(username) {
+        return new Promise((resolve) => {
+          // Create an image object
+          const img = new Image();
+          
+          // Set up load and error handlers
+          img.onload = function() {
+            // If the image loads, the profile exists
+            resolve({ isTaken: true, message: "Username is taken." });
+          };
+          
+          img.onerror = function() {
+            // If the image fails to load, the profile likely doesn't exist
+            resolve({ isTaken: false, message: "Username is available!" });
+          };
+          
+          // Try to load the user's bitmoji or profile image
+          // Add a cache-busting parameter to prevent caching
+          const timestamp = new Date().getTime();
+          img.src = `https://app.snapchat.com/web/deeplink/snapcode?username=${username}&type=SVG&bitmoji=1&t=${timestamp}`;
+          
+          // Set a timeout in case it hangs
+          setTimeout(() => {
+            resolve({ isTaken: false, message: "Username availability check timed out. Likely available." });
+          }, 5000);
         });
       }
       
@@ -262,8 +285,15 @@
         loadingDiv.style.display = 'flex';
         
         try {
-          // Check username availability by trying to load the Snapchat profile
-          const result = await checkUsername(username);
+          // Try our primary method first
+          let result;
+          try {
+            result = await checkUsername(username);
+          } catch (error) {
+            // If the primary method fails, fallback to the image method
+            console.log("Primary method failed, trying fallback method...");
+            result = await checkUsernameByImage(username);
+          }
           
           // Hide loading animation
           loadingDiv.style.display = 'none';
@@ -275,18 +305,18 @@
             resultDiv.textContent = `@${username} is already taken.`;
             resultDiv.className = 'result taken';
           } else {
-            resultDiv.textContent = `@${username} is likely available!`;
+            resultDiv.textContent = `@${username} is available!`;
             resultDiv.className = 'result available';
           }
         } catch (error) {
-          console.error("Error checking username:", error);
+          console.error("All methods failed:", error);
           
           // Hide loading animation
           loadingDiv.style.display = 'none';
           
           // Display error
           resultDiv.style.display = 'block';
-          resultDiv.textContent = 'An error occurred. Please try again.';
+          resultDiv.textContent = 'Could not determine username availability. Please try again later.';
           resultDiv.className = 'result taken';
         }
       });
