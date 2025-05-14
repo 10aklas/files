@@ -423,131 +423,33 @@
                 const useProxy = useProxyCheckbox.checked;
                 const proxyUrl = proxyUrlInput.value.trim();
                 
-                // Create API url
-                let apiUrl = `https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/username/`;
-                
-                // Create request options
-                const requestOptions = {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                    },
-                    body: `username=${encodeURIComponent(username)}&email=dummy@example.com`
-                };
-                
-                // If using proxy, route through proxy server
-                if (useProxy && proxyUrl) {
-                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
-                }
-                
-                // Alternative method using publicly available API
-                fetch(`https://www.instagram.com/web/search/topsearch/?query=${encodeURIComponent(username)}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response error');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Check if username exists in search results
-                        const exactMatch = data.users.some(user => 
-                            user.user.username.toLowerCase() === username.toLowerCase()
+                // First, try the direct profile check
+                checkViaProfilePage(username, webhookUrl, function(isAvailable) {
+                    if (isAvailable === null) {
+                        // If profile check failed, try the signup API
+                        checkViaSignupAPI(username, webhookUrl, callback);
+                    } else {
+                        showResult(
+                            isAvailable 
+                                ? `Username @${username} is available!` 
+                                : `Username @${username} is already taken.`,
+                            isAvailable ? 'available' : 'taken'
                         );
                         
-                        if (exactMatch) {
-                            showResult(`Username @${username} is already taken.`, 'taken');
-                        } else {
-                            // Make a second check to verify
-                            checkViaProfilePage(username, webhookUrl);
+                        // Send to Discord webhook if available and URL is provided
+                        if (isAvailable && webhookUrl) {
+                            sendToDiscordWebhook(username, webhookUrl);
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error checking username:', error);
-                        // Fall back to profile page check
-                        checkViaProfilePage(username, webhookUrl);
-                    })
-                    .finally(() => {
-                        if (callback) callback();
-                    });
-            }
-            
-            function checkViaProfilePage(username, webhookUrl) {
-                // Check if profile page exists (second verification)
-                fetch(`https://www.instagram.com/${encodeURIComponent(username)}/`)
-                    .then(response => {
-                        if (response.status === 404) {
-                            // Username is available
-                            showResult(`Username @${username} is available!`, 'available');
-                            
-                            // Send to Discord webhook if URL is provided
-                            if (webhookUrl) {
-                                sendToDiscordWebhook(username, webhookUrl);
-                            }
-                        } else {
-                            // Username is taken
-                            showResult(`Username @${username} is already taken.`, 'taken');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error checking via profile:', error);
-                        showResult(`Error checking @${username}. Please try again later.`, 'error');
-                    });
-            }
-            
-            function checkBatchUsernameAvailability(username, webhookUrl, index, callback) {
-                const useProxy = useProxyCheckbox.checked;
-                const proxyUrl = proxyUrlInput.value.trim();
-                const resultItem = document.getElementById(`result-${index}`);
-                
-                // Create API url for search
-                let apiUrl = `https://www.instagram.com/web/search/topsearch/?query=${encodeURIComponent(username)}`;
-                
-                // If using proxy, route through proxy server
-                if (useProxy && proxyUrl) {
-                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
-                }
-                
-                fetch(apiUrl)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response error');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Check if username exists in search results
-                        const exactMatch = data.users.some(user => 
-                            user.user.username.toLowerCase() === username.toLowerCase()
-                        );
                         
-                        if (exactMatch) {
-                            if (resultItem) {
-                                resultItem.className = 'result-item taken';
-                                resultItem.textContent = `@${username} is already taken.`;
-                            }
-                        } else {
-                            // Make a second check via profile page
-                            checkBatchViaProfilePage(username, webhookUrl, index);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error checking batch username:', error);
-                        // Fall back to profile check
-                        checkBatchViaProfilePage(username, webhookUrl, index);
-                    })
-                    .finally(() => {
                         if (callback) callback();
-                    });
+                    }
+                });
             }
             
-            function checkBatchViaProfilePage(username, webhookUrl, index) {
+            function checkViaProfilePage(username, webhookUrl, callback) {
                 const useProxy = useProxyCheckbox.checked;
                 const proxyUrl = proxyUrlInput.value.trim();
-                const resultItem = document.getElementById(`result-${index}`);
                 
-                // Create API url for profile
                 let apiUrl = `https://www.instagram.com/${encodeURIComponent(username)}/`;
                 
                 // If using proxy, route through proxy server
@@ -555,32 +457,170 @@
                     apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
                 }
                 
-                fetch(apiUrl)
-                    .then(response => {
+                fetch(apiUrl, {
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    redirect: 'manual'
+                })
+                .then(response => {
+                    // 404 means username is available
+                    // 200 or 301/302 means username exists
+                    if (response.status === 404) {
+                        callback(true); // Available
+                    } else if (response.status === 200 || response.status === 301 || response.status === 302) {
+                        callback(false); // Taken
+                    } else {
+                        callback(null); // Unknown
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking via profile:', error);
+                    callback(null); // Unknown
+                });
+            }
+            
+            function checkViaSignupAPI(username, webhookUrl, callback) {
+                const useProxy = useProxyCheckbox.checked;
+                const proxyUrl = proxyUrlInput.value.trim();
+                
+                // Instagram's signup API endpoint
+                let apiUrl = `https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/`;
+                
+                // If using proxy, route through proxy server
+                if (useProxy && proxyUrl) {
+                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
+                }
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('email', 'dummy@example.com');
+                formData.append('first_name', 'Test');
+                formData.append('opt_into_one_tap', 'false');
+                
+                fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-IG-App-ID': '936619743392459',
+                        'X-Instagram-AJAX': '1006472987',
+                        'X-CSRFToken': 'missing',
+                        'Referer': 'https://www.instagram.com/accounts/emailsignup/',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.errors && data.errors.username) {
+                        // If there's a username error, it's taken
+                        showResult(`Username @${username} is already taken.`, 'taken');
+                    } else {
+                        // No username error means it's available
+                        showResult(`Username @${username} is available!`, 'available');
+                        
+                        // Send to Discord webhook if URL is provided
+                        if (webhookUrl) {
+                            sendToDiscordWebhook(username, webhookUrl);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking via signup API:', error);
+                    showResult(`Error checking @${username}. Please try again later.`, 'error');
+                })
+                .finally(() => {
+                    if (callback) callback();
+                });
+            }
+            
+            function checkBatchUsernameAvailability(username, webhookUrl, index, callback) {
+                const useProxy = useProxyCheckbox.checked;
+                const proxyUrl = proxyUrlInput.value.trim();
+                const resultItem = document.getElementById(`result-${index}`);
+                
+                // First, try the direct profile check
+                checkViaProfilePage(username, webhookUrl, function(isAvailable) {
+                    if (isAvailable === null) {
+                        // If profile check failed, try the signup API
+                        checkBatchViaSignupAPI(username, webhookUrl, index, callback);
+                    } else {
                         if (resultItem) {
-                            if (response.status === 404) {
-                                // Username is available
-                                resultItem.className = 'result-item available';
-                                resultItem.textContent = `@${username} is available!`;
-                                
-                                // Send to Discord webhook if URL is provided
-                                if (webhookUrl) {
-                                    sendToDiscordWebhook(username, webhookUrl);
-                                }
-                            } else {
-                                // Username is taken
-                                resultItem.className = 'result-item taken';
-                                resultItem.textContent = `@${username} is already taken.`;
+                            resultItem.className = isAvailable ? 'result-item available' : 'result-item taken';
+                            resultItem.textContent = isAvailable 
+                                ? `@${username} is available!` 
+                                : `@${username} is already taken.`;
+                            
+                            // Send to Discord webhook if available and URL is provided
+                            if (isAvailable && webhookUrl) {
+                                sendToDiscordWebhook(username, webhookUrl);
                             }
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error checking via profile batch:', error);
-                        if (resultItem) {
-                            resultItem.className = 'result-item error';
-                            resultItem.textContent = `Error checking @${username}. Try again later.`;
+                        
+                        if (callback) callback();
+                    }
+                });
+            }
+            
+            function checkBatchViaSignupAPI(username, webhookUrl, index, callback) {
+                const useProxy = useProxyCheckbox.checked;
+                const proxyUrl = proxyUrlInput.value.trim();
+                const resultItem = document.getElementById(`result-${index}`);
+                
+                // Instagram's signup API endpoint
+                let apiUrl = `https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/`;
+                
+                // If using proxy, route through proxy server
+                if (useProxy && proxyUrl) {
+                    apiUrl = `${proxyUrl}?target=${encodeURIComponent(apiUrl)}`;
+                }
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('email', 'dummy@example.com');
+                formData.append('first_name', 'Test');
+                formData.append('opt_into_one_tap', 'false');
+                
+                fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-IG-App-ID': '936619743392459',
+                        'X-Instagram-AJAX': '1006472987',
+                        'X-CSRFToken': 'missing',
+                        'Referer': 'https://www.instagram.com/accounts/emailsignup/',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (resultItem) {
+                        if (data.errors && data.errors.username) {
+                            resultItem.className = 'result-item taken';
+                            resultItem.textContent = `@${username} is already taken.`;
+                        } else {
+                            resultItem.className = 'result-item available';
+                            resultItem.textContent = `@${username} is available!`;
+                            
+                            // Send to Discord webhook if URL is provided
+                            if (webhookUrl) {
+                                sendToDiscordWebhook(username, webhookUrl);
+                            }
                         }
-                    });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking batch username:', error);
+                    if (resultItem) {
+                        resultItem.className = 'result-item error';
+                        resultItem.textContent = `Error checking @${username}. Try again later.`;
+                    }
+                })
+                .finally(() => {
+                    if (callback) callback();
+                });
             }
             
             function showResult(message, type) {
