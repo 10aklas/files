@@ -159,50 +159,61 @@
             // Show loading spinner
             loadingDiv.style.display = 'block';
             
-            // Make a request to Instagram
-            fetch(`https://www.instagram.com/${username}/`, {
-                method: 'GET',
-                mode: 'cors'
-            })
-            .then(response => {
-                loadingDiv.style.display = 'none';
-                
-                if (response.status === 404) {
-                    // 404 means the username is available
-                    showResult(`@${username} is available!`, 'available');
-                } else if (response.status === 200) {
-                    // 200 means the username exists
-                    showResult(`@${username} is already taken.`, 'taken');
-                    
-                    // Check if the specific class exists by fetching the page content
-                    return response.text().then(html => {
-                        if (html.includes('class="x1lliihq x1plvlek xryxfnj x1n2onr6 x1ji0vk5 x18bv5gf x193iq5w xeuugli x1fj9vlw x13faqbe x1vvkbs x1s928wv xhkezso x1gmr53x x1cpjm7i x1fgarty x1943h6x x1i0vuye xl565be xo1l8bm x1roi4f4 x2b8uid x10wh9bi x1wdrske x8viiok x18hxmgj"')) {
-                            showResult(`@${username} is taken and has the specified class.`, 'taken');
-                        } else {
-                            showResult(`@${username} is taken but doesn't have the specified class.`, 'taken');
-                        }
-                    });
-                } else {
-                    showResult('Error checking username. Please try again later.', 'error');
-                }
-            })
-            .catch(error => {
-                loadingDiv.style.display = 'none';
-                
-                // Most likely a CORS error
-                showResult('Unable to directly check Instagram due to browser security restrictions. Try the alternative method below:', 'error');
-                
-                // Add manual check instructions
-                const extraInfo = document.createElement('div');
-                extraInfo.innerHTML = `
-                    <p style="margin-top: 15px;">To check manually:</p>
-                    <ol style="margin-top: 5px; padding-left: 20px;">
-                        <li>Open <a href="https://www.instagram.com/${username}/" target="_blank">instagram.com/${username}</a> in a new tab</li>
-                        <li>If you see a profile, the username is taken</li>
-                        <li>If you see "Sorry, this page isn't available", the username is available</li>
+            // Instead of trying to use fetch (which will fail due to CORS), 
+            // provide a guided experience for the user
+            
+            // Create instructions for manual checking with our target class
+            const targetClass = "x1lliihq x1plvlek xryxfnj x1n2onr6 x1ji0vk5 x18bv5gf x193iq5w xeuugli x1fj9vlw x13faqbe x1vvkbs x1s928wv xhkezso x1gmr53x x1cpjm7i x1fgarty x1943h6x x1i0vuye xl565be xo1l8bm x1roi4f4 x2b8uid x10wh9bi x1wdrske x8viiok x18hxmgj";
+            
+            // Generate instructions for the user
+            loadingDiv.style.display = 'none';
+            
+            const instructionsHTML = `
+                <div>
+                    <p>To check if @${username} is available:</p>
+                    <ol style="margin-top: 10px; padding-left: 20px;">
+                        <li>Click this link to open Instagram: <a href="https://www.instagram.com/${username}/" target="_blank">instagram.com/${username}</a></li>
+                        <li>If you see "Sorry, this page isn't available" - the username is <span style="color: #1e8942; font-weight: bold;">AVAILABLE</span></li>
+                        <li>If you see a profile, the username is <span style="color: #ea4c41; font-weight: bold;">TAKEN</span></li>
                     </ol>
-                `;
-                resultDiv.appendChild(extraInfo);
+
+                    <p style="margin-top: 15px; font-weight: bold;">To check for the specific class we're looking for:</p>
+                    <ol style="margin-top: 5px; padding-left: 20px;">
+                        <li>When on the Instagram page, right-click and select "Inspect" or press F12</li>
+                        <li>Press Ctrl+F (or Cmd+F on Mac) to open the search</li>
+                        <li>Paste this class name and search for it: <button id="copy-btn" style="background: #efefef; border: 1px solid #ddd; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 12px;">Copy class</button><br>
+                            <code style="display: block; background: #f5f5f5; padding: 8px; margin-top: 5px; border-radius: 4px; font-size: 12px; overflow-x: auto; white-space: nowrap;">${targetClass}</code>
+                        </li>
+                        <li>If the class is found, the element will be highlighted in the inspector</li>
+                    </ol>
+                    
+                    <div style="margin-top: 20px;">
+                        <button id="check-done-btn" class="available" style="width: 100%; padding: 10px; border-radius: 4px; border: none; cursor: pointer;">I checked and the username is AVAILABLE</button>
+                        <button id="check-taken-btn" class="taken" style="width: 100%; margin-top: 10px; padding: 10px; border-radius: 4px; border: none; cursor: pointer;">I checked and the username is TAKEN</button>
+                    </div>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = instructionsHTML;
+            resultDiv.classList.add('error'); // Using error class for neutral styling
+            resultDiv.style.display = 'block';
+            
+            // Add event listener for the copy button
+            document.getElementById('copy-btn').addEventListener('click', function() {
+                navigator.clipboard.writeText(targetClass);
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = 'Copy class';
+                }, 2000);
+            });
+            
+            // Add event listeners for the result buttons
+            document.getElementById('check-done-btn').addEventListener('click', function() {
+                showResult(`@${username} is AVAILABLE! You can register this username.`, 'available');
+            });
+            
+            document.getElementById('check-taken-btn').addEventListener('click', function() {
+                showResult(`@${username} is TAKEN. Try another username.`, 'taken');
             });
         }
 
