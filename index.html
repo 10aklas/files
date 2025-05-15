@@ -1,333 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snapchat Username Checker</title>
-  <style>
-    body {
-      font-family: 'Avenir Next', 'Segoe UI', sans-serif;
-      background-color: #FFFC00;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      color: #333;
-    }
-    
-    .container {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-      width: 90%;
-      max-width: 500px;
-      padding: 30px;
-      text-align: center;
-    }
-    
-    h1 {
-      color: #000;
-      margin-bottom: 30px;
-    }
-    
-    .logo {
-      width: 60px;
-      height: 60px;
-      background-color: #FFFC00;
-      border-radius: 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0 auto 20px;
-    }
-    
-    .ghost {
-      font-size: 36px;
-    }
-    
-    .input-group {
-      position: relative;
-      margin-bottom: 30px;
-    }
-    
-    input {
-      width: 100%;
-      padding: 14px 20px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-size: 16px;
-      box-sizing: border-box;
-      transition: all 0.3s;
-    }
-    
-    input:focus {
-      border-color: #FFFC00;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(255, 252, 0, 0.2);
-    }
-    
-    button {
-      background-color: #FFFC00;
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      padding: 14px 28px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    
-    button:hover {
-      background-color: #E6E300;
-      transform: translateY(-2px);
-    }
-    
-    button:active {
-      transform: translateY(0);
-    }
-    
-    .result {
-      margin-top: 30px;
-      padding: 20px;
-      border-radius: 8px;
-      font-weight: bold;
-      display: none;
-    }
-    
-    .available {
-      background-color: #E3FCEF;
-      color: #0F5132;
-      border: 1px solid #A3E4C9;
-    }
-    
-    .taken {
-      background-color: #FEECEC;
-      color: #842029;
-      border: 1px solid #F5C2C7;
-    }
-    
-    .loading {
-      display: none;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    
-    .loading div {
-      width: 10px;
-      height: 10px;
-      margin: 0 5px;
-      background-color: #FFFC00;
-      border-radius: 50%;
-      animation: bounce 0.9s infinite alternate;
-    }
-    
-    .loading div:nth-child(2) {
-      animation-delay: 0.3s;
-    }
-    
-    .loading div:nth-child(3) {
-      animation-delay: 0.6s;
-    }
-    
-    @keyframes bounce {
-      to {
-        transform: translateY(-10px);
-      }
-    }
-    
-    .error {
-      color: #842029;
-      font-size: 14px;
-      margin-top: 5px;
-      display: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Username Availability Checker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafafa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #262626;
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 24px;
+        }
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #dbdbdb;
+            border-radius: 4px 0 0 4px;
+            font-size: 16px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #a8a8a8;
+        }
+        button {
+            background-color: #0095f6;
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            padding: 0 16px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0086e0;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+            font-weight: 500;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #0095f6;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .available {
+            background-color: #eefbf3;
+            color: #1e8942;
+            border: 1px solid #d0ecd4;
+        }
+        .taken {
+            background-color: #feebeb;
+            color: #ea4c41;
+            border: 1px solid #f7d5d3;
+        }
+        .error {
+            background-color: #fff9e6;
+            color: #946c00;
+            border: 1px solid #ffe8a8;
+        }
+        .instagram-logo {
+            display: block;
+            margin: 0 auto 24px;
+            width: 60px;
+            height: 60px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">
-      <div class="ghost">👻</div>
+    <div class="container">
+        <svg class="instagram-logo" viewBox="0 0 24 24">
+            <path fill="#262626" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+        </svg>
+        <h1>Instagram Username Checker</h1>
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="username" 
+                placeholder="Enter Instagram username"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+            >
+            <button id="check-btn">Check</button>
+        </div>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Checking username...</p>
+        </div>
+        <div class="result" id="result"></div>
     </div>
-    <h1>Snapchat Username Checker</h1>
-    <div class="input-group">
-      <input 
-        type="text" 
-        id="username" 
-        placeholder="Enter Snapchat username" 
-        autocomplete="off"
-      >
-      <div class="error" id="error-message">Please enter a valid username</div>
-    </div>
-    <button id="check-button">Check Availability</button>
-    
-    <div class="loading" id="loading">
-      <div></div>
-      <div></div>
-      <div></div>
-    </div>
-    
-    <div class="result" id="result"></div>
-  </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const usernameInput = document.getElementById('username');
-      const checkButton = document.getElementById('check-button');
-      const resultDiv = document.getElementById('result');
-      const loadingDiv = document.getElementById('loading');
-      const errorMessage = document.getElementById('error-message');
-      
-      // Function to validate username format
-      function isValidUsername(username) {
-        // Snapchat usernames can only contain letters, numbers, periods, hyphens, and underscores
-        // Between 3-15 characters
-        const regex = /^[a-zA-Z0-9._-]{3,15}$/;
-        return regex.test(username);
-      }
-      
-      // Function to check if a Snapchat username exists using fetch
-      async function checkUsername(username) {
-        try {
-          // The URL to check - we'll use the public profile link format
-          const url = `https://www.snapchat.com/add/${username}`;
-          
-          // Create a proxy URL to bypass CORS issues
-          // We'll use a CORS proxy service to help with this check
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-          
-          // Fetch the page through the proxy
-          const response = await fetch(proxyUrl);
-          const data = await response.json();
-          
-          // If the page contains specific error messages, the username is likely available
-          const pageContent = data.contents;
-          
-          // Check for indicators that the profile doesn't exist
-          const doesNotExist = 
-            pageContent.includes("Cannot find the user") || 
-            pageContent.includes("Sorry! We couldn't find") || 
-            pageContent.includes("This username doesn't exist") ||
-            pageContent.includes("Page not found") ||
-            pageContent.includes("no-profile") ||
-            pageContent.includes("error-container");
-          
-          // Check for indicators that the profile exists
-          const profileExists = 
-            pageContent.includes("Add Friend") || 
-            pageContent.includes("snapcode") || 
-            pageContent.includes("This profile is private") ||
-            pageContent.includes("bitmoji") ||
-            pageContent.includes("profile-card");
-          
-          // Determine the result
-          if (doesNotExist) {
-            return { isTaken: false, message: "Username is available!" };
-          } else if (profileExists) {
-            return { isTaken: true, message: "Username is taken." };
-          } else {
-            // If we can't clearly determine, make our best guess
-            // The presence of a Snapchat profile page generally indicates the username is taken
-            return { isTaken: !pageContent.includes("error"), message: "Username status uncertain, but likely taken." };
-          }
-        } catch (error) {
-          console.error("Error checking username:", error);
-          throw new Error("Failed to check username availability");
-        }
-      }
-      
-      // Alternative fallback method using an image check
-      async function checkUsernameByImage(username) {
-        return new Promise((resolve) => {
-          // Create an image object
-          const img = new Image();
-          
-          // Set up load and error handlers
-          img.onload = function() {
-            // If the image loads, the profile exists
-            resolve({ isTaken: true, message: "Username is taken." });
-          };
-          
-          img.onerror = function() {
-            // If the image fails to load, the profile likely doesn't exist
-            resolve({ isTaken: false, message: "Username is available!" });
-          };
-          
-          // Try to load the user's bitmoji or profile image
-          // Add a cache-busting parameter to prevent caching
-          const timestamp = new Date().getTime();
-          img.src = `https://app.snapchat.com/web/deeplink/snapcode?username=${username}&type=SVG&bitmoji=1&t=${timestamp}`;
-          
-          // Set a timeout in case it hangs
-          setTimeout(() => {
-            resolve({ isTaken: false, message: "Username availability check timed out. Likely available." });
-          }, 5000);
+    <script>
+        document.getElementById('check-btn').addEventListener('click', checkUsername);
+        document.getElementById('username').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                checkUsername();
+            }
         });
-      }
-      
-      // Add event listener to the button
-      checkButton.addEventListener('click', async function() {
-        const username = usernameInput.value.trim();
-        
-        // Reset UI
-        resultDiv.style.display = 'none';
-        errorMessage.style.display = 'none';
-        
-        // Validate username
-        if (!isValidUsername(username)) {
-          errorMessage.style.display = 'block';
-          return;
+
+        function checkUsername() {
+            const username = document.getElementById('username').value.trim();
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            
+            // Clear previous results
+            resultDiv.style.display = 'none';
+            resultDiv.className = 'result';
+            
+            // Validate username
+            if (!username) {
+                showResult('Please enter a username', 'error');
+                return;
+            }
+            
+            // Show loading spinner
+            loadingDiv.style.display = 'block';
+            
+            // Make a request to Instagram
+            fetch(`https://www.instagram.com/${username}/`, {
+                method: 'GET',
+                mode: 'cors'
+            })
+            .then(response => {
+                loadingDiv.style.display = 'none';
+                
+                if (response.status === 404) {
+                    // 404 means the username is available
+                    showResult(`@${username} is available!`, 'available');
+                } else if (response.status === 200) {
+                    // 200 means the username exists
+                    showResult(`@${username} is already taken.`, 'taken');
+                    
+                    // Check if the specific class exists by fetching the page content
+                    return response.text().then(html => {
+                        if (html.includes('class="x1lliihq x1plvlek xryxfnj x1n2onr6 x1ji0vk5 x18bv5gf x193iq5w xeuugli x1fj9vlw x13faqbe x1vvkbs x1s928wv xhkezso x1gmr53x x1cpjm7i x1fgarty x1943h6x x1i0vuye xl565be xo1l8bm x1roi4f4 x2b8uid x10wh9bi x1wdrske x8viiok x18hxmgj"')) {
+                            showResult(`@${username} is taken and has the specified class.`, 'taken');
+                        } else {
+                            showResult(`@${username} is taken but doesn't have the specified class.`, 'taken');
+                        }
+                    });
+                } else {
+                    showResult('Error checking username. Please try again later.', 'error');
+                }
+            })
+            .catch(error => {
+                loadingDiv.style.display = 'none';
+                
+                // Most likely a CORS error
+                showResult('Unable to directly check Instagram due to browser security restrictions. Try the alternative method below:', 'error');
+                
+                // Add manual check instructions
+                const extraInfo = document.createElement('div');
+                extraInfo.innerHTML = `
+                    <p style="margin-top: 15px;">To check manually:</p>
+                    <ol style="margin-top: 5px; padding-left: 20px;">
+                        <li>Open <a href="https://www.instagram.com/${username}/" target="_blank">instagram.com/${username}</a> in a new tab</li>
+                        <li>If you see a profile, the username is taken</li>
+                        <li>If you see "Sorry, this page isn't available", the username is available</li>
+                    </ol>
+                `;
+                resultDiv.appendChild(extraInfo);
+            });
         }
-        
-        // Show loading animation
-        loadingDiv.style.display = 'flex';
-        
-        try {
-          // Try our primary method first
-          let result;
-          try {
-            result = await checkUsername(username);
-          } catch (error) {
-            // If the primary method fails, fallback to the image method
-            console.log("Primary method failed, trying fallback method...");
-            result = await checkUsernameByImage(username);
-          }
-          
-          // Hide loading animation
-          loadingDiv.style.display = 'none';
-          
-          // Display result
-          resultDiv.style.display = 'block';
-          
-          if (result.isTaken) {
-            resultDiv.textContent = `@${username} is already taken.`;
-            resultDiv.className = 'result taken';
-          } else {
-            resultDiv.textContent = `@${username} is available!`;
-            resultDiv.className = 'result available';
-          }
-        } catch (error) {
-          console.error("All methods failed:", error);
-          
-          // Hide loading animation
-          loadingDiv.style.display = 'none';
-          
-          // Display error
-          resultDiv.style.display = 'block';
-          resultDiv.textContent = 'Could not determine username availability. Please try again later.';
-          resultDiv.className = 'result taken';
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.classList.add(type);
+            resultDiv.style.display = 'block';
         }
-      });
-      
-      // Also check on Enter key press
-      usernameInput.addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-          checkButton.click();
-        }
-      });
-    });
-  </script>
+    </script>
 </body>
 </html>
